@@ -25,9 +25,14 @@ schemas in Massif Press's
 
 ## Notes
 
-The preview is matched by eye from screenshots and only approximates COMP/CON,
-so importing is still the real test. Full-action and free-action Systems, role
-colours and the class radar chart are the least certain parts.
+The V3 and V2 previews are matched by eye from screenshots and only approximate
+COMP/CON, so importing is still the real test. Full-action and free-action
+Systems in V3, V2 Tech and Reaction cards, role colours other than V2 Support,
+and the class radar chart are the least certain parts.
+
+A pack's cover image is the manifest's `image_url`. A public link is the most
+reliable choice. An image chosen from your computer is shrunk and stored inside
+the pack, so check that it shows in COMP/CON before sharing.
 
 Unofficial fan tool, not affiliated with Massif Press. LANCER and COMP/CON belong
 to their respective owners.
