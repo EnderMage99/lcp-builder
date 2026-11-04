@@ -7,6 +7,7 @@
 <meta name="description" content="Write custom Lancer NPC features, templates and classes, preview them and download a COMP/CON content pack.">
 <style>
 :root {
+  color-scheme: dark;
   --bg: #141a26; --panel: #1b2332; --panel-2: #232d3f; --line: #36435a;
   --ink: #e8ecf3; --muted: #9eabbf; --accent: #49a6a6; --accent-ink: #06201f;
   --err: #ff7b86; --warn: #f0c35a; --ok: #6fd08c; --focus: #8fd8ff;
@@ -295,6 +296,9 @@ function renameHolder(type, x, name) {
 const TYPE_FIELDS = { Weapon: ['weapon_type', 'attack_bonus', 'accuracy', 'damage', 'range', 'on_hit'], Tech: ['tech_type', 'attack_bonus', 'accuracy'], Reaction: ['trigger'], System: [], Trait: [] };
 function applyType(f, type) {
   (TYPE_FIELDS[f.type] || []).forEach(k => { if (!TYPE_FIELDS[type].includes(k)) delete f[k]; });
+  // Drop the action tags this tool added for the old type, so they don't linger on the new one.
+  const stale = { Tech: ['tg_quick_tech', 'tg_full_tech'], Reaction: ['tg_reaction'] }[f.type];
+  if (stale && f.type !== type) f.tags = f.tags.filter(t => !stale.includes(t.id));
   f.type = type;
   if (type === 'Weapon') {
     f.weapon_type ??= 'Main Melee'; f.attack_bonus ??= [2, 4, 6]; f.accuracy ??= [1, 1, 1];
