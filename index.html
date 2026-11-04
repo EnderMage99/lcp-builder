@@ -139,13 +139,70 @@ pre.json { margin: 0; padding: 10px; background: var(--panel); border: 1px solid
 .cgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 0 14px; align-items: start; }
 .missing { font-size: 13px; color: var(--muted); border: 1px dashed var(--line); padding: 6px 10px; margin-bottom: 14px; overflow-wrap: anywhere; }
 
+/* ---- Pack summary, as in COMP/CON's content manager ---- */
+.pack { display: grid; grid-template-columns: minmax(0, 1.9fr) minmax(0, 1fr); gap: 16px; padding: 12px; margin-bottom: 14px; border-radius: 4px; }
+.pack-t { grid-column: 1 / -1; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.pack-t small { font-weight: 400; opacity: .75; }
+.pack-d { padding: 6px 8px; margin-bottom: 8px; white-space: pre-line; overflow-wrap: anywhere; }
+.pack-k { display: block; font-weight: 700; margin: 8px 0 3px; }
+.pack-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.pack-chip { background: #27348b; color: #fff; border-radius: 16px; padding: 5px 16px; font-size: 12px; font-weight: 700; letter-spacing: .12em; }
+.pack-none { font-style: italic; padding-left: 8px; }
+.pack-img { width: 100%; height: auto; max-height: 260px; object-fit: contain; display: block; }
+.pack-noimg { display: grid; place-items: center; min-height: 120px; padding: 8px; font-size: 12px; text-align: center; border: 1px dashed currentColor; opacity: .6; }
+.pack-v2 { background: #fff; color: #222; }
+.pack-v2 .pack-d { background: #dcdcdc; }
+.pack-v3 { background: var(--panel); color: var(--ink); }
+.pack-v3 .pack-d { background: var(--card); }
+.cover-pv { max-width: 180px; max-height: 120px; display: block; margin-bottom: 6px; }
+
+/* ---- COMP/CON v2 look, matched by eye to screenshots ---- */
+.v2 { --r: #6aa84f; --red: #8f1623; background: #f4f4f4; color: #222; padding: 12px; border-radius: 4px; font-family: Arial, Helvetica, sans-serif; }
+.v2-title { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 4px 8px; margin-bottom: 6px; }
+.v2-title .nm { color: var(--red); font-size: 44px; font-weight: 800; line-height: 1.05; text-transform: uppercase; overflow-wrap: anywhere; min-width: 0; }
+.v2-title .pk { flex: 1; min-width: 100px; margin-top: 4px; font-weight: 700; font-size: 13px; text-transform: uppercase; overflow-wrap: anywhere; }
+.v2-role { text-align: center; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; }
+.v2-role svg { display: block; width: 44px; height: 44px; margin: 0 auto 2px; fill: var(--r); }
+.v2-flavor { background: #c9c9c9; padding: 10px; font-family: ui-monospace, Consolas, Menlo, monospace; font-size: 13px; overflow-wrap: anywhere; }
+.v2-tac-h { color: var(--red); font-size: 17px; font-weight: 700; margin-top: 14px; text-transform: uppercase; }
+.v2-tac { padding-bottom: 12px; border-bottom: 1px solid #ccc; overflow-wrap: anywhere; }
+.v2-tabs { display: inline-flex; margin: 12px 0 8px; border: 1px solid #ddd; border-radius: 4px; overflow: hidden; }
+.v2-tabs button { background: #f7f7f7; color: #555; border: 0; padding: 6px 12px; cursor: pointer; letter-spacing: .06em; font-size: 13px; min-height: 30px; }
+.v2-tabs button[aria-pressed=true] { background: #e5c9cc; color: var(--red); }
+.v2-stats { display: grid; gap: 2px; margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px solid #ccc; }
+.v2-stats.c4 { grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); }
+.v2-stats.c5 { grid-template-columns: repeat(auto-fit, minmax(88px, 1fr)); }
+.v2-stats.c2 { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); border-bottom: 0; }
+.v2-stat { background: #fff; text-align: center; }
+.v2-stat b { display: block; background: var(--r); color: #fff; font-size: 13px; text-align: left; padding: 2px 6px; }
+.v2-stat span { display: block; padding: 3px 4px; font-size: 19px; font-weight: 700; }
+.v2-sec { display: inline-block; background: var(--r); color: #fff; font-size: 21px; font-weight: 700; padding: 3px 26px 3px 28px; margin: 12px 0 8px -4px; clip-path: polygon(0 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
+.v2-card { margin: 0 0 16px; --c: #9b1c28; }
+.v2-Weapon { --c: #1f1f1f; } .v2-System { --c: #57b431; } .v2-Reaction { --c: var(--reaction); } .v2-Tech { --c: var(--tech); }
+.v2-h { background: var(--c); color: #fff; padding: 4px 34px 4px 8px; clip-path: polygon(0 0, calc(100% - 28px) 0, 100% 100%, 0 100%); overflow-wrap: anywhere; }
+.v2-n { font: 700 17px/1.2 ui-monospace, Consolas, Menlo, monospace; text-transform: uppercase; }
+.v2-s { font-size: 12px; text-transform: uppercase; }
+.v2-b { background: #ededed; border: 1px solid var(--c); border-top: 0; padding: 8px; overflow-wrap: anywhere; }
+.v2-l { display: block; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; margin: 4px 0 2px; }
+.v2-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; font-size: 17px; font-weight: 700; margin-bottom: 4px; }
+.v2-row > * { display: inline-flex; align-items: center; gap: 4px; }
+.v2-row .sp { flex: 1; justify-content: center; text-transform: uppercase; }
+.v2-row .wt { margin-left: auto; text-transform: uppercase; }
+.v2-row svg { width: 15px; height: 15px; fill: none; stroke: #666; stroke-width: 2; flex: none; }
+.v2-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px; }
+.v2-chip { display: inline-flex; align-items: center; gap: 5px; background: #9b1c28; color: #fff; border-radius: 4px; padding: 3px 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.v2-chip svg { width: 11px; height: 11px; fill: currentColor; }
+.v2 .scale { color: var(--red); }
+.v2 .eff b, .v2 .eff strong { color: inherit; }
+.v2 .missing { border-color: #aaa; color: #555; }
+
 @media (max-width: 1100px) {
   .app { height: auto; min-height: 100vh; }
   .main { grid-template-columns: 1fr; }
   .col { overflow: visible; }
   .col + .col { border-left: 0; border-top: 1px solid var(--line); }
 }
-@media (max-width: 480px) { .two { grid-template-columns: 1fr; } .page-top { grid-template-columns: 1fr; } }
+@media (max-width: 480px) { .two, .pack { grid-template-columns: 1fr; } .page-top { grid-template-columns: 1fr; } .v2-title .nm { font-size: 34px; } }
 </style>
 </head>
 <body>
@@ -163,7 +220,7 @@ pre.json { margin: 0; padding: 10px; background: var(--panel); border: 1px solid
     <section class="col" id="form" aria-label="Editor"></section>
     <section class="col" id="right" aria-label="Preview and checks"></section>
   </main>
-  <footer class="foot">Unofficial fan tool, not affiliated with Massif Press. The preview approximates COMP/CON. Your work stays in this browser.</footer>
+  <footer class="foot">Unofficial fan tool, not affiliated with Massif Press. The previews approximate COMP/CON v3 and v2. Your work stays in this browser.</footer>
 </div>
 
 <script>
@@ -243,6 +300,13 @@ let S = blank();
 let sel = { kind: 'pack', i: 0 };
 let tier = 0;      // 0 = all tiers, as on a class page. 1-3 = a single NPC's tier.
 let rightTab = 'preview';
+let style = 'v3';   // which COMP/CON version the preview imitates
+try { if (localStorage.getItem('lcp-builder.style') === 'v2') style = 'v2'; } catch (e) { /* default */ }
+function setStyle(v) {
+  style = v;
+  try { localStorage.setItem('lcp-builder.style', v); } catch (e) { /* preview still works */ }
+  renderRight();
+}
 
 function load() {
   try {
@@ -517,6 +581,126 @@ function templatePage(t) {
     featureCards(t.optional_features));
 }
 
+/* ---------- COMP/CON v2 preview ---------- */
+const ROLE_V2 = { support: '#6aa84f', striker: '#b3263a', artillery: '#c9771e', controller: '#7a3fa0', defender: '#2b6cb0', balanced: '#5f6b7a', biological: '#3d8f7a' };
+const roleStyle = r => `--r:${ROLE_V2[r] || ROLE_V2.balanced}`;
+const signV2 = v => (v >= 0 ? '+ ' : '- ') + Math.abs(v);
+function cardV2(f) {
+  const type = TYPES.includes(f.type) ? f.type : 'Trait';
+  const o = f.origin || {};
+  const owner = o.name ? `${o.name} ${o.type || ''}`.trim() : 'Custom';
+  const isTech = type === 'Tech', isWeapon = type === 'Weapon';
+  const techName = f.tech_type === 'Full' || (!f.tech_type && hasTag(f, 'tg_full_tech')) ? 'Full Tech' : 'Quick Tech';
+  const row = (isWeapon || isTech) ? h('div', { class: 'v2-row' },
+    isWeapon && (f.range || []).map(r => h('span', { title: r.type }, svg(/threat/i.test(r.type) ? ICON.threat : ICON.range), r.val)),
+    isWeapon && (f.damage || []).map(d => h('span', { title: d.type + ' damage' }, svg(ICON.damage), tiered(d.damage))),
+    f.attack_bonus ? h('span', { class: 'sp' }, tiered(f.attack_bonus, signV2), ' Attack Bonus') : null,
+    f.accuracy ? h('span', { class: 'sp' }, svg(ICON.accuracy), tiered(f.accuracy, sign), ' Accuracy') : null,
+    h('span', { class: 'wt' }, isWeapon ? (f.weapon_type || 'Weapon') : techName)) : null;
+  const tags = f.tags || [];
+  return h('article', { class: 'v2-card v2-' + type },
+    h('div', { class: 'v2-h' }, h('span', { class: 'v2-n' }, f.name || 'Unnamed'), h('span', { class: 'v2-s' }, `//${owner} - ${o.base ? 'Base' : 'Optional'} ${type}`)),
+    h('div', { class: 'v2-b' }, row,
+      type === 'Reaction' && [h('span', { class: 'v2-l' }, 'Trigger'), h('div', { class: 'eff' }, rich(f.trigger))],
+      f.on_hit ? [h('span', { class: 'v2-l' }, 'On Hit'), h('div', { class: 'eff' }, rich(f.on_hit))] : null,
+      f.effect ? [h('span', { class: 'v2-l' }, 'Effect'), h('div', { class: 'eff' }, rich(f.effect))] : null,
+      tags.length ? h('div', { class: 'v2-chips' }, tags.map(t => h('span', { class: 'v2-chip' }, svg(ICON.tag), tagLabel(t)))) : null));
+}
+function featuresV2(title, ids) {
+  return [h('div', null, h('span', { class: 'v2-sec' }, title)), (ids || []).map(id => {
+    const f = S.features.find(x => x.id === id);
+    return f ? cardV2(f) : h('div', { class: 'missing' }, `${id} comes from another pack.`);
+  })];
+}
+function classPageV2(c) {
+  const st = c.stats || {};
+  const val = (k, dflt) => { const a = st[k]; return Array.isArray(a) ? a[(tier || 1) - 1] : dflt; };
+  const cell = (label, v) => h('div', { class: 'v2-stat' }, h('b', null, label), h('span', null, v ?? '-'));
+  const size = val('size');
+  return h('div', { class: 'v2', style: roleStyle(c.role) },
+    h('div', { class: 'v2-title' }, h('div', { class: 'nm' }, c.name || 'Unnamed'), h('div', { class: 'pk' }, S.manifest.name || ''),
+      h('div', { class: 'v2-role' }, svg('<path d="M12 3l10 8-3 3-7-6-7 6-3-3zm0 8l7 6-3 3-4-3-4 3-3-3z"/>'), c.role || '')),
+    h('div', { class: 'v2-flavor' }, rich(c.info && c.info.flavor)),
+    h('div', { class: 'v2-tac-h' }, 'Tactics'), h('div', { class: 'v2-tac' }, rich(c.info && c.info.tactics)),
+    h('div', { class: 'v2-tabs', role: 'group', 'aria-label': 'Tier' }, [1, 2, 3].map(t => h('button', { type: 'button', 'aria-pressed': (tier || 1) === t ? 'true' : 'false', onclick: () => { tier = t; renderRight(); } }, 'TIER ' + t))),
+    h('div', { class: 'v2-stats c4' }, cell('HULL', val('hull')), cell('AGI', val('agility')), cell('SYS', val('systems')), cell('ENG', val('engineering'))),
+    h('div', { class: 'v2-stats c5' }, cell('STRUCTURE', val('structure', 1)), cell('ARMOR', val('armor')), cell('HP', val('hp')), cell('REACTOR', val('stress', 1)), cell('HEAT CAPACITY', val('heatcap')),
+      cell('SPEED', val('speed')), cell('SAVE', val('save')), cell('EVADE', val('evade')), cell('E-DEFENSE', val('edef')), cell('SENSOR', val('sensor'))),
+    h('div', { class: 'v2-stats c2' }, cell('ACTIVATIONS', val('activations')), cell('SIZE', Array.isArray(size) ? sizeText(size).toUpperCase() : '-')),
+    featuresV2('BASE FEATURES', c.base_features), featuresV2('OPTIONAL FEATURES', c.optional_features));
+}
+function templatePageV2(t) {
+  return h('div', { class: 'v2' },
+    h('div', { class: 'v2-title' }, h('div', { class: 'nm' }, t.name || 'Unnamed'), h('div', { class: 'pk' }, S.manifest.name || '')),
+    h('div', { class: 'v2-flavor' }, rich(t.description)),
+    featuresV2('BASE FEATURES', t.base_features), featuresV2('OPTIONAL FEATURES', t.optional_features));
+}
+
+/* ---------- pack summary and cover image ---------- */
+const safeImage = u => { const s = String(u || '').trim(); return /^(https?:\/\/|data:image\/(png|jpeg|webp|gif);base64,)/i.test(s) ? s : ''; };
+const isEmbedded = u => /^data:/i.test(String(u || ''));
+function contentChips() {
+  const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  const out = [];
+  if (S.classes.length) out.push(plural(S.classes.length, 'NPC CLASS', 'NPC CLASSES'));
+  if (S.templates.length) out.push(plural(S.templates.length, 'NPC TEMPLATE', 'NPC TEMPLATES'));
+  if (S.features.length) out.push(plural(S.features.length, 'NPC FEATURE', 'NPC FEATURES'));
+  Object.entries(S.other).forEach(([n, raw]) => {
+    if (!n.endsWith('.json')) return;
+    try {
+      const a = JSON.parse(new TextDecoder().decode(latinToBytes(raw)).replace(/^\uFEFF/, ''));
+      if (Array.isArray(a)) out.push(`${a.length} ${n.replace(/\.json$/, '').replace(/_/g, ' ').toUpperCase()}`);
+    } catch (e) { /* not a list: leave it out of the summary */ }
+  });
+  return out;
+}
+function packCard() {
+  const m = S.manifest, src = safeImage(m.image_url), chips = contentChips();
+  const deps = Array.isArray(m.dependencies) ? m.dependencies.map(d => d && d.name).filter(Boolean) : [];
+  const noImg = t => h('div', { class: 'pack-noimg' }, t);
+  return h('section', { class: 'pack pack-' + style, 'aria-label': 'Pack summary' },
+    h('div', { class: 'pack-t' }, m.name || 'Unnamed pack', ' ', h('small', null, [m.version ? 'v' + m.version : '', m.author ? 'by ' + m.author : ''].filter(Boolean).join(' '))),
+    h('div', null,
+      h('div', { class: 'pack-d' }, m.description || 'No description yet.'),
+      h('span', { class: 'pack-k' }, 'Content'),
+      chips.length ? h('div', { class: 'pack-chips' }, chips.map(c => h('span', { class: 'pack-chip' }, c))) : h('div', { class: 'pack-none' }, 'None'),
+      h('span', { class: 'pack-k' }, 'Dependencies'),
+      deps.length ? h('div', { class: 'pack-none' }, deps.join(', ')) : h('div', { class: 'pack-none' }, 'None')),
+    src ? h('img', { class: 'pack-img', src, alt: 'Pack cover', referrerpolicy: 'no-referrer', onerror: e => e.target.replaceWith(noImg("This image couldn't be loaded.")) }) : noImg('No cover image'));
+}
+function coverEditor() {
+  const m = S.manifest;
+  const embedded = isEmbedded(m.image_url), src = safeImage(m.image_url);
+  const file = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/gif', hidden: true, onchange: async e => {
+    const fl = e.target.files[0];
+    e.target.value = '';
+    if (!fl) return;
+    try {
+      const bmp = await createImageBitmap(fl);
+      const scale = Math.min(1, 600 / Math.max(bmp.width, bmp.height));
+      const c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(bmp.width * scale)); c.height = Math.max(1, Math.round(bmp.height * scale));
+      const g = c.getContext('2d');
+      g.fillStyle = '#141a26'; g.fillRect(0, 0, c.width, c.height);
+      g.drawImage(bmp, 0, 0, c.width, c.height);
+      snapshot();
+      m.image_url = c.toDataURL('image/jpeg', 0.82);
+      commit(true);
+    } catch (err) { toast("Couldn't read that image. Try a PNG or JPEG."); }
+  } });
+  return h('fieldset', null, h('legend', null, 'Cover image (optional)'),
+    src ? h('img', { class: 'cover-pv', src, alt: 'Current cover', referrerpolicy: 'no-referrer' }) : null,
+    field('Image link', h('input', { type: 'text', value: embedded ? '' : (m.image_url ?? ''), placeholder: embedded ? 'Using an image from your computer' : 'https://…', oninput: e => {
+      const v = e.target.value.trim();
+      if (v) m.image_url = v; else delete m.image_url;
+      commit();
+    } }), 'COMP/CON loads this from the web, so a public link is the most reliable choice.'),
+    h('div', { class: 'row' }, file,
+      h('button', { class: 'btn small', type: 'button', onclick: () => file.click() }, 'Choose from computer'),
+      src ? h('button', { class: 'btn small danger', type: 'button', onclick: () => { snapshot(); delete m.image_url; commit(true); } }, 'Remove') : null),
+    embedded ? h('span', { class: 'hint' }, `Stored inside the pack (about ${Math.round(m.image_url.length * 0.75 / 1024)} KB, shrunk to 600px).`) : null);
+}
+
 /* ---------- checks (required fields follow Massif's published content-pack schemas) ---------- */
 function validate() {
   const out = [];
@@ -525,6 +709,8 @@ function validate() {
   ['name', 'author', 'description', 'version'].forEach(k => { if (!String(m[k] || '').trim()) add('err', `The pack needs a ${k}.`); });
   if (m.version && !/^\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$/.test(m.version)) add('warn', `Version "${m.version}" isn't in the 1.0.0 style.`);
   if (!S.features.length && !S.templates.length && !S.classes.length && !Object.keys(S.other).length) add('warn', 'The pack has no content yet.');
+  if (m.image_url && !safeImage(m.image_url)) add('warn', "The cover image link should start with https://.");
+  if (isEmbedded(m.image_url)) add('warn', 'The cover is stored inside the pack. Check that it shows in COMP/CON, or use a public image link.');
 
   const seen = new Map();
   [['feature', S.features], ['template', S.templates], ['class', S.classes]].forEach(([kind, list]) => list.forEach((x, i) => {
@@ -819,7 +1005,7 @@ function formPack() {
       field('Version', textIn(() => m.version, v => { m.version = v; }), 'Raise this each time you re-share the pack.'),
       field('Item prefix (optional)', textIn(() => m.item_prefix, v => { if (v) m.item_prefix = v; else delete m.item_prefix; }))),
     field('Website (optional)', textIn(() => m.website, v => { if (v) m.website = v; else delete m.website; })),
-    field('Cover image URL (optional)', textIn(() => m.image_url, v => { if (v) m.image_url = v; else delete m.image_url; })),
+    coverEditor(),
     Object.keys(S.other).length ? h('p', { class: 'hint' }, `Also keeping ${Object.keys(S.other).length} other file(s) from the pack you opened: ${Object.keys(S.other).join(', ')}.`) : null,
     h('fieldset', null, h('legend', null, 'How to use your download'),
       h('p', null, 'In COMP/CON, import the .lcp in the content manager, then add your template to an NPC and pick your feature from its optional features.'))
@@ -983,13 +1169,17 @@ function jsonFor() {
   return { file: { feature: 'npc_features.json', template: 'npc_templates.json', class: 'npc_classes.json' }[sel.kind], data: cur() };
 }
 function renderRight() {
+  if (style === 'v2' && !tier) tier = 1; // v2 pages only ever show one tier
   const issues = validate();
   const errs = issues.filter(i => i.lvl === 'err').length, warns = issues.length - errs;
   const tabBtn = (id, label) => h('button', { type: 'button', role: 'tab', 'aria-selected': rightTab === id ? 'true' : 'false', onclick: () => { rightTab = id; renderRight(); } }, label);
   const head = h('div', { class: 'pv-h' },
     h('div', { class: 'tabs', role: 'tablist' }, tabBtn('preview', 'Preview'), tabBtn('checks', `Checks (${issues.length})`), tabBtn('json', 'JSON')),
-    rightTab === 'preview' ? h('div', { class: 'seg', role: 'group', 'aria-label': 'Tier shown in preview' },
-      [[0, 'All tiers'], [1, 'T1'], [2, 'T2'], [3, 'T3']].map(([v, l]) => h('button', { type: 'button', 'aria-pressed': tier === v ? 'true' : 'false', onclick: () => { tier = v; renderRight(); } }, l))) : null);
+    rightTab === 'preview' ? h('div', { class: 'row' },
+      h('div', { class: 'seg', role: 'group', 'aria-label': 'COMP/CON version shown in preview' },
+        [['v3', 'V3'], ['v2', 'V2']].map(([v, l]) => h('button', { type: 'button', 'aria-pressed': style === v ? 'true' : 'false', onclick: () => setStyle(v) }, l))),
+      h('div', { class: 'seg', role: 'group', 'aria-label': 'Tier shown in preview' },
+        (style === 'v2' ? [[1, 'T1'], [2, 'T2'], [3, 'T3']] : [[0, 'All tiers'], [1, 'T1'], [2, 'T2'], [3, 'T3']]).map(([v, l]) => h('button', { type: 'button', 'aria-pressed': tier === v ? 'true' : 'false', onclick: () => { tier = v; renderRight(); } }, l)))) : null);
   const status = h('div', { class: 'status' + (errs ? ' bad' : warns ? ' meh' : ''), role: 'status' },
     errs ? `${errs} problem${errs > 1 ? 's' : ''} to fix before importing${warns ? `, ${warns} to review` : ''}.` : warns ? `Ready to download, with ${warns} thing${warns > 1 ? 's' : ''} to review.` : 'Ready to download.');
   let body;
@@ -997,15 +1187,17 @@ function renderRight() {
     body = issues.length ? h('ul', { class: 'issues' }, issues.map(i => h('li', { class: i.lvl }, h('button', { type: 'button', onclick: () => { sel = i.sel; rightTab = 'preview'; renderAll(); } }, (i.lvl === 'err' ? 'Fix: ' : 'Check: ') + i.msg)))) : h('p', { class: 'empty' }, 'Nothing to report.');
   } else if (rightTab === 'json') {
     const j = jsonFor();
-    body = [h('p', { class: 'hint', style: 'margin-bottom:6px' }, `This entry, as written to ${j.file}:`), h('pre', { class: 'json mono' }, JSON.stringify(j.data, null, 2))];
+    const shown = JSON.stringify(j.data, (k, v) => k === 'image_url' && isEmbedded(v) ? `(embedded image, ${v.length} characters)` : v, 2);
+    body = [h('p', { class: 'hint', style: 'margin-bottom:6px' }, `This entry, as written to ${j.file}:`), h('pre', { class: 'json mono' }, shown)];
   } else {
     const it = cur();
     body = h('div', { class: 'cc' },
-      sel.kind === 'feature' ? [card(it, 'picker'), it.origin && it.origin.base ? null : h('p', { class: 'hint' }, 'As shown when picking optional features for an NPC.')]
-      : sel.kind === 'template' ? templatePage(it)
-      : sel.kind === 'class' ? classPage(it)
-      : S.features.length ? [h('div', { class: 'sec' }, 'All features'), S.features.map(f => card(f))]
-      : h('p', { class: 'empty' }, 'Add a feature with the + button, or use Load example to see one.'));
+      sel.kind === 'feature' ? (style === 'v2' ? h('div', { class: 'v2' }, cardV2(it)) : [card(it, 'picker'), it.origin && it.origin.base ? null : h('p', { class: 'hint' }, 'As shown when picking optional features for an NPC.')])
+      : sel.kind === 'template' ? (style === 'v2' ? templatePageV2(it) : templatePage(it))
+      : sel.kind === 'class' ? (style === 'v2' ? classPageV2(it) : classPage(it))
+      : [packCard(), S.features.length
+          ? (style === 'v2' ? h('div', { class: 'v2' }, S.features.map(cardV2)) : [h('div', { class: 'sec' }, 'All features'), S.features.map(f => card(f))])
+          : h('p', { class: 'empty' }, 'Add a feature with the + button, or use Load example to see one.')]);
   }
   $('#right').replaceChildren(...[head, status, body].flat(Infinity).filter(Boolean));
 }
@@ -1028,7 +1220,7 @@ $('#file').addEventListener('change', async e => {
 });
 
 /* Small surface for automated checks. */
-window.lcpWorkbench = { get state() { return S; }, set state(v) { S = v; sel = { kind: 'pack', i: 0 }; renderAll(); }, importBytes, packBytes, validate, select(kind, i) { sel = { kind, i }; renderAll(); }, setTier(t) { tier = t; renderRight(); } };
+window.lcpWorkbench = { get state() { return S; }, set state(v) { S = v; sel = { kind: 'pack', i: 0 }; renderAll(); }, importBytes, packBytes, validate, select(kind, i) { sel = { kind, i }; renderAll(); }, setTier(t) { tier = t; renderRight(); }, setStyle };
 
 load();
 renderAll();
