@@ -925,13 +925,13 @@ function tagsEditor(f) {
     commit(true);
   } },
     h('option', { value: '' }, 'Add a tag…'),
-    groups.map(g => h('optgroup', { label: g }, Object.entries(TAGS).filter(([id, d]) => d[1] === g && !hasTag(f, id)).map(([id, d]) => h('option', { value: id }, d[0].replace('{v}', d[2] ?? ''))))),
+    groups.map(g => h('optgroup', { label: g }, Object.entries(TAGS).filter(([id, d]) => d[1] === g && !hasTag(f, id)).map(([id, d]) => h('option', { value: id }, d[0].replace('{v}', 'X'))))),
     h('option', { value: '__custom' }, 'Other tag ID…'));
   const custom = h('input', { id: 'custom-tag', type: 'text', hidden: true, placeholder: 'tg_example, then press Enter', 'aria-label': 'Custom tag ID', class: 'mono', onkeydown: e => {
     if (e.key === 'Enter' && e.target.value.trim()) { f.tags.push({ id: e.target.value.trim() }); commit(true); }
   } });
   return h('fieldset', null, h('legend', null, 'Tags'), rows, addSel, custom,
-    h('span', { class: 'hint' }, 'Action tags, recharge and limited uses all go here. COMP/CON sorts them alphabetically on the card.'));
+    h('span', { class: 'hint' }, 'Action tags, recharge and limited uses all go here. X is a number you set after adding the tag. V3 sorts tags alphabetically on the card.'));
 }
 function damageEditor(f) {
   f.damage = f.damage || [];
