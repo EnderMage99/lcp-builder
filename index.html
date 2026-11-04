@@ -1,0 +1,1033 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LCP Builder</title>
+<meta name="description" content="Write custom Lancer NPC features, templates and classes, preview them and download a COMP/CON content pack.">
+<style>
+:root {
+  --bg: #141a26; --panel: #1b2332; --panel-2: #232d3f; --line: #36435a;
+  --ink: #e8ecf3; --muted: #9eabbf; --accent: #49a6a6; --accent-ink: #06201f;
+  --err: #ff7b86; --warn: #f0c35a; --ok: #6fd08c; --focus: #8fd8ff;
+  /* Card colours, matched by eye to COMP/CON screenshots */
+  --card: #38465a; --card-text: #c9cfae; --scale: #e8475f; --tag: #7f2430;
+  --weapon: #202226; --trait: #981e2b; --reaction: #016a6c; --reaction-box: #5230a6;
+  --protocol: #5fb335; --protocol-box: #00747a; --tech: #7f2373; --role: #e04a5f;
+  --add-bar: #49a6a6;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.45 Inter, "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif; }
+button, input, select, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+h1, h2, h3, p { margin: 0; }
+
+.app { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; }
+.topbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding: 10px 16px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.topbar h1 { font-size: 16px; letter-spacing: .04em; margin-right: auto; }
+.topbar h1 small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); letter-spacing: 0; }
+.btn { background: var(--panel-2); border: 1px solid var(--line); border-radius: 4px; padding: 6px 12px; cursor: pointer; min-height: 32px; }
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 650; }
+.btn.small { padding: 2px 8px; min-height: 26px; font-size: 13px; }
+.btn.danger:hover { border-color: var(--err); color: var(--err); }
+.btn.full { width: 100%; }
+
+.main { display: grid; grid-template-columns: 240px minmax(340px, 1fr) minmax(380px, 1.15fr); min-height: 0; }
+.col { min-width: 0; overflow-y: auto; padding: 14px 16px; }
+.col + .col { border-left: 1px solid var(--line); }
+.foot { padding: 6px 16px; font-size: 12px; color: var(--muted); background: var(--panel); border-top: 1px solid var(--line); }
+
+.side-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 16px 0 6px; font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.side-h:first-child { margin-top: 0; }
+.item { display: flex; gap: 8px; align-items: baseline; justify-content: space-between; width: 100%; padding: 6px 8px; background: none; border: 1px solid transparent; border-radius: 4px; cursor: pointer; text-align: left; }
+.item:hover { background: var(--panel-2); }
+.item.on { background: var(--panel-2); border-color: var(--accent); }
+.item .nm { overflow-wrap: anywhere; }
+.item .ty { flex: none; font-size: 11px; color: var(--muted); }
+.empty { font-size: 13px; color: var(--muted); padding: 2px 8px; }
+
+.form-h { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.form-h h2 { font-size: 15px; overflow-wrap: anywhere; }
+.row { display: flex; flex-wrap: wrap; gap: 6px; }
+.field { display: block; margin-bottom: 12px; }
+.lab { display: block; font-size: 12px; font-weight: 600; color: var(--muted); margin-bottom: 3px; }
+.hint { display: block; font-size: 12px; color: var(--muted); margin-top: 3px; }
+input[type=text], input[type=number], select, textarea { width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; min-height: 32px; }
+textarea { resize: vertical; min-height: 92px; }
+textarea.mono, .mono { font-family: ui-monospace, Consolas, Menlo, monospace; font-size: 12.5px; }
+fieldset { border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; margin: 0 0 12px; min-width: 0; }
+legend { padding: 0 6px; font-size: 12px; font-weight: 600; color: var(--muted); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+.tiers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0 12px; }
+.line { display: grid; gap: 6px; align-items: center; margin-bottom: 6px; }
+.line.dmg { grid-template-columns: 1.3fr repeat(3, minmax(44px, 1fr)) auto; }
+.line.rng { grid-template-columns: 1.3fr 1fr auto; }
+.line.tagl { grid-template-columns: 1fr 72px auto; }
+.line.feat { grid-template-columns: minmax(0, 1fr) 110px auto; }
+.line .t { overflow-wrap: anywhere; font-size: 13px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.seg button { background: none; border: 0; padding: 4px 10px; cursor: pointer; min-height: 28px; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); font-weight: 650; }
+
+.pv-h { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.tabs { display: inline-flex; gap: 2px; }
+.tabs button { background: none; border: 0; border-bottom: 2px solid transparent; padding: 4px 10px; cursor: pointer; color: var(--muted); }
+.tabs button[aria-selected=true] { color: var(--ink); border-color: var(--accent); }
+.issues { margin: 0 0 12px; padding: 0; list-style: none; }
+.issues li { margin-bottom: 4px; }
+.issues button { display: block; width: 100%; background: var(--panel); border: 0; border-left: 3px solid var(--warn); border-radius: 3px; padding: 5px 8px; text-align: left; cursor: pointer; font-size: 13px; }
+.issues .err button { border-left-color: var(--err); }
+.status { font-size: 13px; margin-bottom: 8px; color: var(--ok); }
+.status.bad { color: var(--err); } .status.meh { color: var(--warn); }
+pre.json { margin: 0; padding: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+.toast { position: fixed; left: 50%; bottom: 44px; transform: translateX(-50%); display: flex; gap: 12px; align-items: center; max-width: calc(100vw - 32px); background: #000; color: #fff; border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; z-index: 5; }
+.toast button { background: none; border: 0; color: var(--focus); text-decoration: underline; cursor: pointer; }
+
+/* ---- Preview cards ---- */
+.cc { font-size: 14px; }
+.card { background: var(--card); color: var(--card-text); margin-bottom: 14px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%); }
+.card-h { display: flex; align-items: center; gap: 7px; padding: 2px 8px; color: #fff; font-size: 12px; font-weight: 650; letter-spacing: .14em; text-transform: uppercase; }
+.card-h .nm { flex: 1; overflow-wrap: anywhere; }
+.card-h .ty { letter-spacing: .02em; font-weight: 750; flex: none; }
+.card-h svg { width: 14px; height: 14px; flex: none; fill: currentColor; }
+.t-Weapon .card-h { background: var(--weapon); } .t-Trait .card-h, .t-System .card-h { background: var(--trait); }
+.t-Reaction .card-h { background: var(--reaction); } .t-Tech .card-h { background: var(--tech); }
+.t-System.is-protocol .card-h { background: var(--protocol); }
+.card-b { padding: 8px 20px 12px; }
+.sub { font-size: 11px; font-weight: 650; letter-spacing: .14em; color: #a9b3c0; text-transform: uppercase; margin-bottom: 8px; }
+.eff > * { margin: 0; } .eff ul, .eff ol { padding-left: 20px; margin: 4px 0; }
+.eff b, .eff strong { color: #eee; }
+.scale { color: var(--scale); font-weight: 700; }
+.lbl { font-size: 12px; font-weight: 650; letter-spacing: .1em; color: #a9b3c0; text-transform: uppercase; }
+.stats { display: flex; justify-content: space-around; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 8px; color: #fff; font-weight: 700; }
+.stat { display: inline-flex; align-items: center; gap: 4px; }
+.stat svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; flex: none; }
+.act { margin: 10px 8px 12px; padding: 6px 14px 12px 20px; color: #fff; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 22px), calc(100% - 22px) 100%, 0 100%); }
+.a-Reaction { background: var(--reaction-box); } .a-Protocol { background: var(--protocol-box); } .a-Tech { background: var(--tech); }
+.act-h { display: flex; align-items: flex-start; gap: 8px; }
+.act-h svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; margin-top: 2px; }
+.act-h .nm { flex: 1; font-size: 18px; font-weight: 800; text-transform: uppercase; overflow-wrap: anywhere; line-height: 1.25; }
+.pill { flex: none; background: rgba(255,255,255,.16); padding: 2px 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%); }
+.act .lbl { display: block; color: rgba(255,255,255,.5); line-height: 1.2; margin-top: 2px; }
+.act .tx { padding-left: 18px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; background: var(--tag); color: #fff; padding: 4px 10px 4px 12px; font-size: 12px; font-weight: 600; text-transform: uppercase; clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px); }
+.chip svg { width: 10px; height: 10px; fill: currentColor; }
+.addbar { background: var(--add-bar); color: #06201f; padding: 3px 14px 3px 20px; font-size: 11px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; overflow-wrap: anywhere; }
+
+.page { background: #131925; padding: 12px; border-radius: 4px; }
+.page-t { color: var(--role); font-size: 30px; font-weight: 800; text-transform: uppercase; line-height: 1.1; overflow-wrap: anywhere; }
+.page-r { color: #fff; font-size: 17px; font-weight: 800; text-transform: uppercase; margin: 8px 0; }
+.box { background: var(--card); color: #e4e7ea; margin-bottom: 8px; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%); }
+.box-h { background: #3585d0; color: #fff; padding: 2px 10px; font-size: 11px; font-weight: 700; letter-spacing: .18em; }
+.box-b { padding: 6px 20px 12px; white-space: pre-line; overflow-wrap: anywhere; }
+.page-top { display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.radar { width: 100%; height: auto; }
+.sec { display: flex; align-items: center; gap: 10px; margin: 14px 0 10px; font-size: 12px; letter-spacing: .1em; color: #fff; text-transform: uppercase; }
+.sec::after { content: ""; flex: 1; border-top: 1px solid var(--line); }
+.sec span { color: var(--muted); }
+.cstats { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px 8px; text-align: center; }
+.cstats b { display: block; color: var(--role); font-size: 13px; text-transform: uppercase; }
+.cstats i { color: #fff; font-style: normal; font-weight: 700; }
+.cstats i s { color: var(--muted); text-decoration: none; font-weight: 400; padding: 0 3px; }
+.cgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: 0 14px; align-items: start; }
+.missing { font-size: 13px; color: var(--muted); border: 1px dashed var(--line); padding: 6px 10px; margin-bottom: 14px; overflow-wrap: anywhere; }
+
+@media (max-width: 1100px) {
+  .app { height: auto; min-height: 100vh; }
+  .main { grid-template-columns: 1fr; }
+  .col { overflow: visible; }
+  .col + .col { border-left: 0; border-top: 1px solid var(--line); }
+}
+@media (max-width: 480px) { .two { grid-template-columns: 1fr; } .page-top { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <h1>LCP Builder <small>Custom Lancer foes and systems for COMP/CON</small></h1>
+    <button class="btn" id="b-new" type="button">New pack</button>
+    <button class="btn" id="b-example" type="button">Load example</button>
+    <button class="btn" id="b-open" type="button">Open .lcp</button>
+    <input id="file" type="file" accept=".lcp,.zip" hidden>
+    <button class="btn primary" id="b-dl" type="button">Download .lcp</button>
+  </header>
+  <main class="main">
+    <nav class="col" id="side" aria-label="Pack contents"></nav>
+    <section class="col" id="form" aria-label="Editor"></section>
+    <section class="col" id="right" aria-label="Preview and checks"></section>
+  </main>
+  <footer class="foot">Unofficial fan tool, not affiliated with Massif Press. The preview approximates COMP/CON. Your work stays in this browser.</footer>
+</div>
+
+<script>
+'use strict';
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+function h(tag, props, ...kids) {
+  const e = document.createElement(tag);
+  const p = props || {};
+  for (const k in p) {
+    const v = p[k];
+    if (v == null || v === false) continue;
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
+    else if (k === 'value' || k === 'checked' || k === 'disabled') e[k] = v;
+    else e.setAttribute(k, v === true ? '' : v);
+  }
+  kids.flat(Infinity).forEach(c => { if (c != null && c !== false) e.append(c.nodeType ? c : String(c)); });
+  if ('value' in p && p.value != null) e.value = p.value; // select options exist only now
+  return e;
+}
+function svg(body, box = '0 0 24 24') {
+  const t = document.createElement('template');
+  t.innerHTML = `<svg viewBox="${box}" aria-hidden="true">${body}</svg>`;
+  return t.content.firstChild;
+}
+const clone = o => JSON.parse(JSON.stringify(o));
+const slug = s => String(s || '').toLowerCase().replace(/['’]/g, '').replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+const num = v => { const n = parseFloat(v); return Number.isFinite(n) ? n : 0; };
+
+/* Icons are simple shapes drawn for this tool. */
+const ICON = {
+  Weapon: '<path d="M4 3l9 9-2 2-9-9V3zM20 3h2v2l-9 9-2-2zM5 15l4 4-2 2-1-1-2 2-2-2 2-2-1-1zM19 15l2 2-1 1 2 2-2 2-2-2-1 1-2-2z"/>',
+  Trait: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 3a7 7 0 1 1 0 14 7 7 0 0 1 0-14zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>',
+  System: '<path d="M12 2l3 4 5-1-1 5 4 2-4 2 1 5-5-1-3 4-3-4-5 1 1-5-4-2 4-2-1-5 5 1zm0 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"/>',
+  Reaction: '<path d="M2 12c3-5 7-7 10-7s7 2 10 7c-3 5-7 7-10 7s-7-2-10-7zm10-3a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/>',
+  Tech: '<path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1 5h2v4h4v2h-4v4h-2v-4H7v-2h4z"/>',
+  layers: '<path d="M12 3l10 5-10 5L2 8zM4 12l8 4 8-4 2 1-10 5-10-5zm0 4l8 4 8-4 2 1-10 5-10-5z"/>',
+  tag: '<path d="M1 1h10l12 12-10 10L1 11zm5 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>',
+  range: '<circle cx="12" cy="12" r="8"/><path d="M12 1v6M12 17v6M1 12h6M17 12h6"/>',
+  threat: '<path d="M4 4l6 6M20 4l-6 6M4 20l6-6M20 20l-6-6"/><circle cx="12" cy="12" r="4"/>',
+  damage: '<circle cx="12" cy="12" r="9"/><path d="M5 19L19 5"/>',
+  attack: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',
+  accuracy: '<path d="M12 2l9 5v10l-9 5-9-5V7z"/><path d="M12 8v8M8 12h8"/>',
+  rProt: '<path d="M19 8a8 8 0 0 0-14 2M5 16a8 8 0 0 0 14-2M19 3v5h-5M5 21v-5h5"/><circle cx="12" cy="12" r="1.5"/>',
+  rTech: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M6 9l3 3-3 3M13 15h2M17 9l-2 6"/>'
+};
+
+/* Tags seen across published NPC packs. {v} is the tag's value. */
+const TAGS = {
+  tg_quick_action: ['Quick Action', 'Action'], tg_full_action: ['Full Action', 'Action'], tg_free_action: ['Free Action', 'Action'],
+  tg_protocol: ['Protocol', 'Action'], tg_reaction: ['Reaction', 'Action'], tg_quick_tech: ['Quick Tech', 'Action'], tg_full_tech: ['Full Tech', 'Action'],
+  tg_recharge: ['Recharge {v}+', 'Uses', 5], tg_limited: ['Limited {v}', 'Uses', 1], tg_round: ['{v}/Round', 'Uses', 1], tg_turn: ['{v}/Turn', 'Uses', 1], tg_unlimited: ['Unlimited', 'Uses'],
+  tg_ap: ['Armor-Piercing (AP)', 'Weapon'], tg_accurate: ['Accurate', 'Weapon'], tg_inaccurate: ['Inaccurate', 'Weapon'], tg_arcing: ['Arcing', 'Weapon'], tg_heat_self: ['Heat {v} (Self)', 'Weapon', 2],
+  tg_knockback: ['Knockback {v}', 'Weapon', 1], tg_loading: ['Loading', 'Weapon'], tg_ordnance: ['Ordnance', 'Weapon'], tg_reliable: ['Reliable {v}', 'Weapon', 2], tg_seeking: ['Seeking', 'Weapon'], tg_smart: ['Smart', 'Weapon'], tg_thrown: ['Thrown {v}', 'Weapon', 5],
+  tg_shield: ['Shield', 'Kind'], tg_drone: ['Drone', 'Kind'], tg_deployable: ['Deployable', 'Kind'], tg_grenade: ['Grenade', 'Kind'], tg_mine: ['Mine', 'Kind'], tg_mod: ['Mod', 'Kind']
+};
+const tagLabel = t => {
+  const d = TAGS[t.id];
+  if (!d) return (t.id || '').replace(/^tg_/, '').replace(/_/g, ' ') + (t.val != null ? ' ' + t.val : '');
+  return d[0].replace('{v}', t.val != null ? t.val : '?');
+};
+const tagNeedsVal = id => TAGS[id] && TAGS[id][2] != null;
+
+const TYPES = ['System', 'Reaction', 'Trait', 'Weapon', 'Tech'];
+const DAMAGE_TYPES = ['Kinetic', 'Energy', 'Explosive', 'Heat', 'Burn', 'Variable'];
+const RANGE_TYPES = ['Range', 'Threat', 'Blast', 'Burst', 'Cone', 'Line', 'Thrown'];
+const ROLES = ['artillery', 'balanced', 'biological', 'controller', 'defender', 'striker', 'support'];
+const WEAPON_TYPES = ['Auxiliary', 'Main', 'Heavy', 'Superheavy'].flatMap(s => ['CQB', 'Cannon', 'Launcher', 'Melee', 'Nexus', 'Rifle'].map(k => s + ' ' + k));
+const STATS = [['hull', 'Hull'], ['agility', 'Agility'], ['systems', 'Systems'], ['engineering', 'Engineering'], ['armor', 'Armor'], ['hp', 'HP'], ['heatcap', 'Heat'], ['evade', 'Evasion'], ['edef', 'E-Def'], ['speed', 'Speed'], ['sensor', 'Sensor'], ['save', 'Save'], ['activations', 'Activations'], ['structure', 'Structure (optional)'], ['stress', 'Stress (optional)']];
+const OPTIONAL_STATS = new Set(['structure', 'stress']);
+
+/* ---------- state ---------- */
+const STORE = 'lcp-builder.pack';
+const blank = () => ({ manifest: { name: 'My NPC Pack', author: '', description: '', version: '1.0.0' }, features: [], templates: [], classes: [], other: {} });
+let S = blank();
+let sel = { kind: 'pack', i: 0 };
+let tier = 0;      // 0 = all tiers, as on a class page. 1-3 = a single NPC's tier.
+let rightTab = 'preview';
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORE);
+    if (raw) { const v = JSON.parse(raw); if (v && v.manifest && Array.isArray(v.features)) S = { ...blank(), ...v }; }
+  } catch (e) { /* storage may be blocked; start blank */ }
+}
+function save() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) { /* preview still works */ } }
+
+let undoSnap = null;
+function snapshot() { undoSnap = { S: JSON.stringify(S), sel: { ...sel } }; }
+function toast(msg, canUndo) {
+  document.querySelector('.toast')?.remove();
+  const t = h('div', { class: 'toast', role: 'status' }, msg, canUndo && undoSnap ? h('button', { type: 'button', onclick: () => {
+    S = JSON.parse(undoSnap.S); sel = undoSnap.sel; undoSnap = null; t.remove(); save(); renderAll();
+  } }, 'Undo') : null);
+  document.body.append(t);
+  setTimeout(() => t.remove(), canUndo ? 8000 : 4000);
+}
+
+const arr = k => ({ feature: S.features, template: S.templates, class: S.classes }[k]);
+const cur = () => sel.kind === 'pack' ? S.manifest : arr(sel.kind)[sel.i];
+const holders = () => [...S.templates.map(x => ['Template', x]), ...S.classes.map(x => ['Class', x])];
+const findHolder = o => o && o.name ? holders().find(([t, x]) => t === o.type && x.name === o.name) : null;
+function uniqueId(base) {
+  const used = new Set([...S.features, ...S.templates, ...S.classes].map(x => x.id));
+  let id = base, n = 2;
+  while (used.has(id)) id = base + '_' + n++;
+  return id;
+}
+const autoId = (kind, name) => ({ feature: `npcf_${slug(name)}_custom`, template: `npct_${slug(name)}`, class: `npcc_${slug(name)}` }[kind]);
+
+function setOrigin(f, type, name, base) {
+  holders().forEach(([, x]) => {
+    x.base_features = (x.base_features || []).filter(i => i !== f.id);
+    x.optional_features = (x.optional_features || []).filter(i => i !== f.id);
+  });
+  f.origin = { type: type || '', name: name || '', base: !!base };
+  const hd = findHolder(f.origin);
+  if (hd) hd[1][base ? 'base_features' : 'optional_features'].push(f.id);
+}
+function renameFeature(f, id) {
+  holders().forEach(([, x]) => ['base_features', 'optional_features'].forEach(k => { if (x[k]) x[k] = x[k].map(i => i === f.id ? id : i); }));
+  f.id = id;
+}
+function renameHolder(type, x, name) {
+  S.features.forEach(f => { if (f.origin && f.origin.type === type && f.origin.name === x.name) f.origin.name = name; });
+  x.name = name;
+}
+
+const TYPE_FIELDS = { Weapon: ['weapon_type', 'attack_bonus', 'accuracy', 'damage', 'range', 'on_hit'], Tech: ['tech_type', 'attack_bonus', 'accuracy'], Reaction: ['trigger'], System: [], Trait: [] };
+function applyType(f, type) {
+  (TYPE_FIELDS[f.type] || []).forEach(k => { if (!TYPE_FIELDS[type].includes(k)) delete f[k]; });
+  f.type = type;
+  if (type === 'Weapon') {
+    f.weapon_type ??= 'Main Melee'; f.attack_bonus ??= [2, 4, 6]; f.accuracy ??= [1, 1, 1];
+    f.damage ??= [{ type: 'Kinetic', damage: [4, 6, 8] }]; f.range ??= [{ type: 'Threat', val: 1 }]; f.on_hit ??= '';
+  }
+  if (type === 'Tech') {
+    f.tech_type ??= 'Quick'; f.attack_bonus ??= [2, 4, 6];
+    if (!hasTag(f, 'tg_quick_tech') && !hasTag(f, 'tg_full_tech')) f.tags.push({ id: f.tech_type === 'Full' ? 'tg_full_tech' : 'tg_quick_tech' });
+  }
+  if (type === 'Reaction') {
+    f.trigger ??= '';
+    if (!hasTag(f, 'tg_reaction')) f.tags.push({ id: 'tg_reaction' });
+    if (!hasTag(f, 'tg_round')) f.tags.push({ id: 'tg_round', val: 1 });
+  }
+}
+const hasTag = (f, id) => (f.tags || []).some(t => t.id === id);
+
+function newFeature(holder) {
+  snapshot();
+  const name = 'New Feature';
+  const f = { id: uniqueId(autoId('feature', name)), name, origin: { type: '', name: '', base: false }, locked: false, type: 'System', effect: '', tags: [] };
+  S.features.push(f);
+  const target = holder || (S.templates.length + S.classes.length === 1 ? holders()[0] : null) || holders()[0];
+  if (target) setOrigin(f, target[0], target[1].name, false);
+  sel = { kind: 'feature', i: S.features.length - 1 };
+  commit(true);
+}
+function newTemplate() {
+  snapshot();
+  const name = uniqueHolderName('Custom Systems', S.templates);
+  S.templates.push({ id: uniqueId(autoId('template', name)), name, description: '', base_features: [], optional_features: [], power: 50 });
+  sel = { kind: 'template', i: S.templates.length - 1 };
+  commit(true);
+}
+function newClass() {
+  snapshot();
+  const name = uniqueHolderName('New Class', S.classes);
+  S.classes.push({
+    id: uniqueId(autoId('class', name)), name, role: 'striker', info: { flavor: '', tactics: '' },
+    stats: { armor: [0, 0, 0], hp: [12, 15, 18], evade: [8, 10, 12], edef: [8, 10, 12], heatcap: [6, 6, 6], speed: [4, 4, 4], sensor: [10, 10, 10], save: [10, 12, 14], hull: [0, 1, 2], agility: [0, 1, 2], systems: [0, 1, 2], engineering: [0, 1, 2], size: [[1], [1], [1]], activations: [1, 1, 1] },
+    base_features: [], optional_features: [], power: 100
+  });
+  sel = { kind: 'class', i: S.classes.length - 1 };
+  commit(true);
+}
+function uniqueHolderName(base, list) {
+  let n = base, i = 2;
+  while (list.some(x => x.name === n)) n = `${base} ${i++}`;
+  return n;
+}
+function duplicate() {
+  snapshot();
+  const list = arr(sel.kind), c = clone(cur());
+  c.name = c.name + ' Copy';
+  c.id = uniqueId(autoId(sel.kind, c.name));
+  list.push(c);
+  if (sel.kind === 'feature') { const o = c.origin || {}; setOrigin(c, o.type, o.name, o.base); }
+  sel = { kind: sel.kind, i: list.length - 1 };
+  commit(true);
+}
+function removeCurrent() {
+  snapshot();
+  const it = cur();
+  if (sel.kind === 'feature') holders().forEach(([, x]) => ['base_features', 'optional_features'].forEach(k => { if (x[k]) x[k] = x[k].filter(i => i !== it.id); }));
+  arr(sel.kind).splice(sel.i, 1);
+  sel = { kind: 'pack', i: 0 };
+  commit(true);
+  toast(`Deleted ${it.name}.`, true);
+}
+function exampleData() {
+  const d = blank();
+  d.manifest = { name: 'Custom NPC Systems', author: 'Endermage', description: "Custom NPC systems for Endermage's Lancer game. Includes Captain's Deflect.", item_prefix: 'endermage-', version: '1.0.1' };
+  d.features = [{ id: 'npcf_captains_deflect_custom', name: "CAPTAIN'S DEFLECT", origin: { type: 'Template', name: 'Custom Systems', base: false }, locked: false, type: 'Reaction',
+    effect: 'The Captain gains Resistance to damage from that attack and chooses any target within Range 45. The attacker must repeat the attack against the chosen target. This reaction can trigger up to 3 times per round.',
+    tags: [{ id: 'tg_shield' }, { id: 'tg_round', val: 3 }, { id: 'tg_reaction' }],
+    trigger: 'The Captain takes damage from a ranged attack made by an ally or The Nemesis.' }];
+  d.templates = [{ id: 'npct_custom_systems', name: 'Custom Systems', description: "Holder template for Endermage's custom NPC systems.", base_features: [], optional_features: ['npcf_captains_deflect_custom'], power: 50 }];
+  return d;
+}
+
+/* ---------- rich text: imported packs are untrusted, so only plain formatting survives ---------- */
+const ALLOWED = new Set(['B', 'I', 'U', 'EM', 'STRONG', 'BR', 'P', 'UL', 'OL', 'LI', 'DIV', 'SPAN', 'SUB', 'SUP']);
+const DROPPED = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'TEMPLATE', 'NOSCRIPT', 'SVG', 'MATH']);
+const SCALE = /\{([^{}\/]+(?:\/[^{}\/]+)+)\}/g;
+function appendScaled(dst, text) {
+  let last = 0, m;
+  SCALE.lastIndex = 0;
+  while ((m = SCALE.exec(text))) {
+    dst.append(text.slice(last, m.index));
+    const parts = m[1].split('/');
+    dst.append(h('span', { class: 'scale' }, tier ? (parts[tier - 1] ?? parts[parts.length - 1]) : parts.join('/')));
+    last = m.index + m[0].length;
+  }
+  dst.append(text.slice(last));
+}
+function rich(html) {
+  const doc = new DOMParser().parseFromString(String(html ?? ''), 'text/html');
+  const out = document.createElement('div');
+  const walk = (src, dst) => {
+    src.childNodes.forEach(n => {
+      if (n.nodeType === 3) appendScaled(dst, n.textContent);
+      else if (n.nodeType === 1) {
+        const tag = n.tagName.toUpperCase();
+        if (DROPPED.has(tag)) return;
+        if (ALLOWED.has(tag)) { const c = document.createElement(tag); walk(n, c); dst.append(c); }
+        else walk(n, dst);
+      }
+    });
+  };
+  walk(doc.body, out);
+  return out;
+}
+
+/* ---------- preview ---------- */
+const sign = v => (v >= 0 ? '+' : '') + v;
+function tiered(a, fmt = x => x) {
+  if (!Array.isArray(a)) return a == null ? '' : fmt(a);
+  if (tier) return fmt(a[tier - 1] ?? a[a.length - 1]);
+  return a.map(fmt).join(' / ');
+}
+function actionKind(f) {
+  if (f.type === 'Reaction') return { cls: 'a-Reaction', pill: 'Reaction', icon: ICON.Reaction, fill: true };
+  if (f.type === 'Tech') {
+    const full = f.tech_type === 'Full' || (!f.tech_type && hasTag(f, 'tg_full_tech'));
+    return { cls: 'a-Tech', pill: full ? 'Full Tech' : 'Quick Tech', icon: ICON.rTech };
+  }
+  if (f.type === 'System' && hasTag(f, 'tg_protocol')) return { cls: 'a-Protocol', pill: 'Protocol', icon: ICON.rProt };
+  return null;
+}
+function card(f, mode) {
+  const type = TYPES.includes(f.type) ? f.type : 'Trait';
+  const proto = type === 'System' && hasTag(f, 'tg_protocol');
+  const name = f.name || 'Unnamed';
+  const right = type === 'Weapon' ? (f.weapon_type || 'Weapon') : type;
+  const stats = [];
+  if (type === 'Weapon') {
+    (f.range || []).forEach(r => stats.push(h('span', { class: 'stat', title: r.type }, svg(/threat/i.test(r.type) ? ICON.threat : ICON.range), r.val)));
+    (f.damage || []).forEach(d => stats.push(h('span', { class: 'stat', title: d.type + ' damage' }, svg(ICON.damage), tiered(d.damage))));
+  }
+  if ((type === 'Weapon' || type === 'Tech') && f.attack_bonus) stats.push(h('span', { class: 'stat', title: 'Attack bonus' }, svg(ICON.attack), tiered(f.attack_bonus, sign)));
+  if ((type === 'Weapon' || type === 'Tech') && f.accuracy) stats.push(h('span', { class: 'stat', title: 'Accuracy' }, svg(ICON.accuracy), tiered(f.accuracy, sign)));
+
+  const a = actionKind({ ...f, type });
+  const tags = (f.tags || []).map(tagLabel).sort((x, y) => x.localeCompare(y, undefined, { numeric: true, sensitivity: 'base' }));
+  const body = h('div', { class: 'card-b' },
+    mode === 'picker' && h('div', { class: 'sub' }, f.origin && f.origin.base ? 'Base Feature' : 'Optional Feature'),
+    stats.length ? h('div', { class: 'stats' }, stats) : null,
+    type === 'Reaction' && h('div', { class: 'lbl' }, 'Trigger'),
+    type === 'Reaction' && h('div', { style: 'margin-bottom:8px' }, rich(f.trigger)),
+    f.effect ? h('div', { class: 'eff' }, rich(f.effect)) : null,
+    f.on_hit ? h('div', { class: 'eff' }, h('b', null, 'On Hit: '), rich(f.on_hit)) : null,
+    a && h('div', { class: 'act ' + a.cls },
+      h('div', { class: 'act-h' }, svg(a.icon), h('div', { class: 'nm' }, name), h('div', { class: 'pill' }, a.pill)),
+      type === 'Reaction' && [h('span', { class: 'lbl' }, 'Trigger'), h('div', { class: 'tx' }, rich(f.trigger))],
+      h('span', { class: 'lbl' }, 'Effect'), h('div', { class: 'tx' }, rich(f.effect))),
+    tags.length ? h('div', { class: 'chips' }, tags.map(l => h('span', { class: 'chip' }, svg(ICON.tag), l))) : null);
+  return h('article', { class: `card t-${type}${proto ? ' is-protocol' : ''}` },
+    h('div', { class: 'card-h' }, svg(ICON[type]), h('span', { class: 'nm' }, name), h('span', { class: 'ty' }, right), svg(ICON.layers)),
+    body,
+    mode === 'picker' && !(f.origin && f.origin.base) && h('div', { class: 'addbar' }, '+ Add ' + name));
+}
+function featureCards(ids) {
+  return h('div', { class: 'cgrid' }, (ids || []).map(id => {
+    const f = S.features.find(x => x.id === id);
+    return f ? card(f) : h('div', { class: 'missing' }, `${id} comes from another pack.`);
+  }));
+}
+function sizeText(a) { return (a || []).map(v => v === 0.5 ? '½' : v).join(' or '); }
+function radar(c) {
+  const axes = [['Hull', 'hull', 6], ['Armor', 'armor', 5], ['HP', 'hp', 40], ['Agi', 'agility', 6], ['Speed', 'speed', 10], ['Evasion', 'evade', 18], ['Sys', 'systems', 6], ['EDefense', 'edef', 20], ['Sensors', 'sensor', 20], ['Eng', 'engineering', 6], ['HeatCap', 'heatcap', 14], ['SaveTarget', 'save', 20]];
+  const R = 80, cx = 120, cy = 110, t = tier ? tier - 1 : 2;
+  const pt = (i, r) => { const a = -Math.PI / 2 + i * 2 * Math.PI / axes.length; return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; };
+  const rings = [.25, .5, .75, 1].map(f => `<polygon points="${axes.map((_, i) => pt(i, R * f).join(',')).join(' ')}" fill="none" stroke="#36435a"/>`).join('');
+  const spokes = axes.map((_, i) => { const [x, y] = pt(i, R); return `<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="#36435a"/>`; }).join('');
+  const vals = axes.map(([, k, max], i) => {
+    const v = (c.stats && c.stats[k] && c.stats[k][t]) || 0;
+    const f = Math.max(0.05, Math.min(1, (v + (max === 6 ? 3 : 0)) / (max + (max === 6 ? 3 : 0))));
+    return pt(i, R * f).join(',');
+  }).join(' ');
+  const labels = axes.map(([l], i) => { const [x, y] = pt(i, R + 12); const anchor = x < cx - 4 ? 'end' : x > cx + 4 ? 'start' : 'middle'; return `<text x="${x}" y="${y + 3}" text-anchor="${anchor}" font-size="8" fill="#9eabbf">${l}</text>`; }).join('');
+  const e = svg(rings + spokes + `<polygon points="${vals}" fill="#e04a5f" fill-opacity=".35" stroke="#e04a5f" stroke-width="2"/>` + labels, '0 0 240 220');
+  e.setAttribute('class', 'radar');
+  e.setAttribute('role', 'img');
+  return e;
+}
+function classPage(c) {
+  const st = c.stats || {};
+  const stat = (label, k) => {
+    const a = st[k];
+    if (!a) return null;
+    const vals = tier ? [a[tier - 1]] : a;
+    return h('div', null, h('b', null, label), h('i', null, vals.map((v, i) => [i ? h('s', null, '/') : null, k === 'size' ? sizeText(v) : v])));
+  };
+  return h('div', { class: 'page' },
+    h('div', { class: 'page-t' }, c.name || 'Unnamed'),
+    h('div', { class: 'page-top' },
+      h('div', null,
+        h('div', { class: 'page-r' }, c.role || ''),
+        h('div', { class: 'box' }, h('div', { class: 'box-h' }, 'DESCRIPTION'), h('div', { class: 'box-b' }, rich(c.info && c.info.flavor))),
+        h('div', { class: 'box' }, h('div', { class: 'box-h' }, 'TACTICS'), h('div', { class: 'box-b' }, rich(c.info && c.info.tactics)))),
+      radar(c)),
+    h('div', { class: 'sec' }, 'Class Stats'),
+    h('div', { class: 'cstats' }, stat('Hull', 'hull'), stat('Agility', 'agility'), stat('Systems', 'systems'), stat('Engineering', 'engineering'), stat('Size', 'size'), stat('Armor', 'armor'), stat('HP', 'hp'), stat('Heat', 'heatcap'), stat('Evasion', 'evade'), stat('EDef', 'edef'), stat('Speed', 'speed'), stat('Sensor', 'sensor'), stat('Save', 'save')),
+    h('div', { class: 'sec' }, 'Class Base Features ', h('span', null, `(${(c.base_features || []).length})`)),
+    featureCards(c.base_features),
+    h('div', { class: 'sec' }, 'Class Optional Features ', h('span', null, `(${(c.optional_features || []).length})`)),
+    featureCards(c.optional_features));
+}
+function templatePage(t) {
+  return h('div', { class: 'page' },
+    h('div', { class: 'page-t' }, t.name || 'Unnamed'),
+    h('div', { class: 'box', style: 'margin-top:10px' }, h('div', { class: 'box-h' }, 'DESCRIPTION'), h('div', { class: 'box-b' }, rich(t.description))),
+    h('div', { class: 'sec' }, 'Template Base Features ', h('span', null, `(${(t.base_features || []).length})`)),
+    featureCards(t.base_features),
+    h('div', { class: 'sec' }, 'Template Optional Features ', h('span', null, `(${(t.optional_features || []).length})`)),
+    featureCards(t.optional_features));
+}
+
+/* ---------- checks (required fields follow Massif's published content-pack schemas) ---------- */
+function validate() {
+  const out = [];
+  const add = (lvl, msg, s) => out.push({ lvl, msg, sel: s || { kind: 'pack', i: 0 } });
+  const m = S.manifest;
+  ['name', 'author', 'description', 'version'].forEach(k => { if (!String(m[k] || '').trim()) add('err', `The pack needs a ${k}.`); });
+  if (m.version && !/^\d+\.\d+\.\d+([-+][0-9A-Za-z.-]+)?$/.test(m.version)) add('warn', `Version "${m.version}" isn't in the 1.0.0 style.`);
+  if (!S.features.length && !S.templates.length && !S.classes.length && !Object.keys(S.other).length) add('warn', 'The pack has no content yet.');
+
+  const seen = new Map();
+  [['feature', S.features], ['template', S.templates], ['class', S.classes]].forEach(([kind, list]) => list.forEach((x, i) => {
+    const s = { kind, i }, nm = x.name || x.id || `Unnamed ${kind}`;
+    if (!x.id) add('err', `${nm} has no ID.`, s);
+    else if (seen.has(x.id)) add('err', `${nm} shares the ID ${x.id} with ${seen.get(x.id)}.`, s);
+    else seen.set(x.id, nm);
+    if (!String(x.name || '').trim()) add('err', `${x.id || 'An item'} has no name.`, s);
+  }));
+
+  S.features.forEach((f, i) => {
+    const s = { kind: 'feature', i }, nm = f.name || f.id;
+    if (!TYPES.includes(f.type)) add('err', `${nm} has type "${f.type}". This format expects ${TYPES.join(', ')}.`, s);
+    if (f.type === 'Reaction' && !String(f.trigger || '').trim()) add('err', `${nm} is a Reaction, so it needs a trigger.`, s);
+    if (f.type === 'Weapon') {
+      if (!f.weapon_type) add('err', `${nm} needs a weapon type.`, s);
+      if (!(f.damage || []).length) add('err', `${nm} needs at least one damage entry.`, s);
+      if (!(f.range || []).length) add('err', `${nm} needs at least one range entry.`, s);
+    }
+    if (f.type === 'Tech' && !f.tech_type) add('err', `${nm} needs a tech type, Quick or Full.`, s);
+    if (f.type !== 'Weapon' && !String(f.effect || '').trim()) add('warn', `${nm} has no rules text.`, s);
+    (f.tags || []).forEach(t => { if (tagNeedsVal(t.id) && t.val == null) add('warn', `${nm}: the ${tagLabel(t)} tag needs a value.`, s); });
+    [f.effect, f.trigger, f.on_hit].forEach(x => {
+      (String(x || '').match(/\{[^{}]*\}/g) || []).forEach(b => { if (b.slice(1, -1).split('/').length !== 3) add('warn', `${nm}: tier scaling ${b} should have three values, like {1/2/3}.`, s); });
+    });
+    const o = f.origin || {};
+    const listedIn = holders().filter(([, x]) => (x.base_features || []).includes(f.id) || (x.optional_features || []).includes(f.id));
+    const hd = findHolder(o);
+    if (!o.type && !listedIn.length) add('warn', `${nm} isn't on a template or class, so you may not be able to add it to an NPC.`, s);
+    else if (o.type && !hd && !listedIn.length) add('warn', `${nm} belongs to ${o.name || 'a class or template'} in another pack, and may not show up there. A template in this pack is the tested route.`, s);
+    else if (hd) {
+      const x = hd[1], inB = (x.base_features || []).includes(f.id), inO = (x.optional_features || []).includes(f.id);
+      if (!inB && !inO) add('warn', `${nm} names ${x.name} as its origin but isn't in its feature lists.`, s);
+      if (inB && inO) add('err', `${nm} is both base and optional on ${x.name}.`, s);
+      if ((inB && !o.base) || (inO && o.base)) add('warn', `${nm}: base/optional disagrees with ${x.name}'s list.`, s);
+    } else if (listedIn.length && o.type) add('warn', `${nm} is listed on ${listedIn[0][1].name} but its origin says ${o.name || 'nothing'}.`, s);
+  });
+
+  const ids = new Set(S.features.map(f => f.id));
+  [['template', S.templates], ['class', S.classes]].forEach(([kind, list]) => list.forEach((x, i) => {
+    const s = { kind, i }, nm = x.name || x.id;
+    [...(x.base_features || []), ...(x.optional_features || [])].forEach(id => { if (!ids.has(id)) add('warn', `${nm} lists ${id}, which isn't in this pack. That only works if the other pack is installed.`, s); });
+    if (typeof x.power !== 'number') add('err', `${nm} needs a power number.`, s);
+    if (kind === 'template' && !String(x.description || '').trim()) add('err', `${nm} needs a description.`, s);
+    if (kind === 'template' && !(x.base_features || []).length && !(x.optional_features || []).length) add('warn', `${nm} has no features yet.`, s);
+  }));
+  S.classes.forEach((c, i) => {
+    const s = { kind: 'class', i }, nm = c.name || c.id;
+    if (!ROLES.includes(c.role)) add('err', `${nm} needs a valid role.`, s);
+    if (!c.info || !String(c.info.flavor || '').trim()) add('err', `${nm} needs a description.`, s);
+    if (!c.info || !String(c.info.tactics || '').trim()) add('err', `${nm} needs tactics.`, s);
+    STATS.forEach(([k, l]) => {
+      const a = c.stats && c.stats[k];
+      if (OPTIONAL_STATS.has(k) && a == null) return;
+      if (!Array.isArray(a) || a.length !== 3 || a.some(v => typeof v !== 'number')) add('err', `${nm}: ${l} needs a number for each tier.`, s);
+    });
+    const sz = c.stats && c.stats.size;
+    if (!Array.isArray(sz) || sz.length !== 3 || sz.some(v => !Array.isArray(v) || !v.length)) add('err', `${nm}: Size needs at least one value for each tier.`, s);
+  });
+  return out;
+}
+
+/* ---------- zip ---------- */
+const CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function crc32(b) { let c = 0xFFFFFFFF; for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function makeZip(files) {
+  const enc = new TextEncoder(), parts = [], central = [];
+  const d = new Date();
+  const time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  let offset = 0;
+  files.forEach(([name, data]) => {
+    const nm = enc.encode(name), crc = crc32(data);
+    const head = (sig, extra) => {
+      const b = new Uint8Array(extra ? 46 : 30), v = new DataView(b.buffer);
+      let p = 0;
+      v.setUint32(p, sig, true); p += 4;
+      if (extra) { v.setUint16(p, 20, true); p += 2; }
+      v.setUint16(p, 20, true); p += 2;       // version needed
+      v.setUint16(p, 0x0800, true); p += 2;   // names are UTF-8
+      v.setUint16(p, 0, true); p += 2;        // stored
+      v.setUint16(p, time, true); p += 2;
+      v.setUint16(p, date, true); p += 2;
+      v.setUint32(p, crc, true); p += 4;
+      v.setUint32(p, data.length, true); p += 4;
+      v.setUint32(p, data.length, true); p += 4;
+      v.setUint16(p, nm.length, true); p += 2;
+      if (extra) v.setUint32(42, offset, true);
+      return b;
+    };
+    const local = head(0x04034b50, false);
+    parts.push(local, nm, data);
+    central.push(head(0x02014b50, true), nm);
+    offset += local.length + nm.length + data.length;
+  });
+  const cdSize = central.reduce((n, b) => n + b.length, 0);
+  const end = new Uint8Array(22), v = new DataView(end.buffer);
+  v.setUint32(0, 0x06054b50, true);
+  v.setUint16(8, files.length, true); v.setUint16(10, files.length, true);
+  v.setUint32(12, cdSize, true); v.setUint32(16, offset, true);
+  const all = [...parts, ...central, end], out = new Uint8Array(all.reduce((n, b) => n + b.length, 0));
+  let p = 0;
+  all.forEach(b => { out.set(b, p); p += b.length; });
+  return out;
+}
+async function readZip(buf) {
+  const u = new Uint8Array(buf), v = new DataView(buf);
+  let e = -1;
+  for (let i = u.length - 22; i >= 0 && i >= u.length - 66000; i--) if (v.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) throw new Error("That file isn't a zip or .lcp.");
+  const count = v.getUint16(e + 10, true);
+  let p = v.getUint32(e + 16, true);
+  const out = {}, dec = new TextDecoder();
+  for (let n = 0; n < count; n++) {
+    if (v.getUint32(p, true) !== 0x02014b50) throw new Error('The zip directory is damaged.');
+    const method = v.getUint16(p + 10, true), csize = v.getUint32(p + 20, true), nlen = v.getUint16(p + 28, true), xlen = v.getUint16(p + 30, true), clen = v.getUint16(p + 32, true), off = v.getUint32(p + 42, true);
+    const name = dec.decode(u.subarray(p + 46, p + 46 + nlen));
+    p += 46 + nlen + xlen + clen;
+    if (name.endsWith('/')) continue;
+    const start = off + 30 + v.getUint16(off + 26, true) + v.getUint16(off + 28, true);
+    const raw = u.subarray(start, start + csize);
+    if (method === 0) out[name] = raw.slice();
+    else if (method === 8) {
+      const stream = new Blob([raw]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+      out[name] = new Uint8Array(await new Response(stream).arrayBuffer());
+    } else throw new Error(`${name} uses a compression method this tool can't read.`);
+  }
+  return out;
+}
+const bytesToLatin = b => { let s = ''; for (let i = 0; i < b.length; i++) s += String.fromCharCode(b[i]); return s; };
+const latinToBytes = s => { const b = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) b[i] = s.charCodeAt(i); return b; };
+
+function packFiles() {
+  const enc = new TextEncoder(), js = o => enc.encode(JSON.stringify(o, null, 2) + '\n');
+  const files = [['lcp_manifest.json', js(S.manifest)]];
+  if (S.features.length) files.push(['npc_features.json', js(S.features)]);
+  if (S.templates.length) files.push(['npc_templates.json', js(S.templates)]);
+  if (S.classes.length) files.push(['npc_classes.json', js(S.classes)]);
+  Object.entries(S.other).forEach(([n, s]) => files.push([n, latinToBytes(s)]));
+  return files;
+}
+function packBytes() { return makeZip(packFiles()); }
+const packFilename = () => `${slug(S.manifest.name).replace(/_/g, '-') || 'npc-pack'}-${S.manifest.version || '1.0.0'}.lcp`;
+function download() {
+  const url = URL.createObjectURL(new Blob([packBytes()], { type: 'application/zip' }));
+  const a = h('a', { href: url, download: packFilename() });
+  document.body.append(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  const errs = validate().filter(i => i.lvl === 'err').length;
+  toast(errs ? `Downloaded with ${errs} problem${errs > 1 ? 's' : ''} still to fix. COMP/CON may reject it.` : `Downloaded ${packFilename()}.`);
+}
+async function importBytes(buf) {
+  const files = await readZip(buf);
+  const names = Object.keys(files);
+  const mf = names.find(n => n.split('/').pop() === 'lcp_manifest.json');
+  if (!mf) throw new Error("That file has no lcp_manifest.json, so it isn't a content pack.");
+  const prefix = mf.slice(0, mf.length - 'lcp_manifest.json'.length);
+  const dec = new TextDecoder();
+  const json = n => JSON.parse(dec.decode(files[n]).replace(/^﻿/, ''));
+  const next = blank();
+  next.manifest = json(mf);
+  for (const n of names) {
+    if (n === mf) continue;
+    const short = n.startsWith(prefix) ? n.slice(prefix.length) : n;
+    const map = { 'npc_features.json': 'features', 'npc_templates.json': 'templates', 'npc_classes.json': 'classes' }[short];
+    if (map) { const a = json(n); if (!Array.isArray(a)) throw new Error(`${short} should be a list.`); next[map] = a; }
+    else next.other[short] = bytesToLatin(files[n]);
+  }
+  return next;
+}
+
+/* ---------- form widgets ---------- */
+function commit(full) {
+  save();
+  if (full) renderAll(); else { renderSide(); renderRight(); }
+}
+const field = (label, input, hint) => h('label', { class: 'field' }, h('span', { class: 'lab' }, label), input, hint && h('span', { class: 'hint' }, hint));
+function textIn(get, set, extra) { return h('input', { type: 'text', value: get() ?? '', oninput: e => { set(e.target.value); commit(); }, ...extra }); }
+function areaIn(get, set, extra) { return h('textarea', { value: get() ?? '', oninput: e => { set(e.target.value); commit(); }, ...extra }); }
+function numIn(get, set, extra) { return h('input', { type: 'number', step: 'any', value: get() ?? '', oninput: e => { set(e.target.value === '' ? null : num(e.target.value)); commit(); }, ...extra }); }
+const brToNl = s => String(s ?? '').replace(/<br\s*\/?>/gi, '\n').replace(/<\/br>/gi, '');
+const nlToBr = s => String(s).replace(/\r?\n/g, '<br>');
+function richIn(obj, key, rows, ph) {
+  return areaIn(() => brToNl(obj[key]), v => { obj[key] = nlToBr(v); }, { rows, placeholder: ph });
+}
+function tierRow(label, obj, key, optional) {
+  const a = obj[key];
+  const cells = [0, 1, 2].map(i => numIn(() => Array.isArray(a) ? a[i] : null, v => {
+    const cur = Array.isArray(obj[key]) ? obj[key] : [null, null, null];
+    cur[i] = v; obj[key] = cur;
+    if (optional && cur.every(x => x == null)) delete obj[key];
+  }, { 'aria-label': `${label}, tier ${i + 1}`, placeholder: 'T' + (i + 1) }));
+  return h('div', { class: 'field' }, h('span', { class: 'lab' }, label), h('div', { class: 'tiers' }, cells));
+}
+
+function tagsEditor(f) {
+  f.tags = f.tags || [];
+  const rows = f.tags.map((t, i) => h('div', { class: 'line tagl' },
+    h('div', { class: 't' }, tagLabel(t), h('span', { class: 'hint mono' }, t.id)),
+    (tagNeedsVal(t.id) || t.val != null)
+      ? numIn(() => t.val, v => { if (v == null) delete t.val; else t.val = v; }, { 'aria-label': `Value for ${t.id}` })
+      : h('span'),
+    h('button', { class: 'btn small danger', type: 'button', 'aria-label': `Remove ${t.id}`, onclick: () => { f.tags.splice(i, 1); commit(true); } }, '×')));
+  const groups = ['Action', 'Uses', 'Weapon', 'Kind'];
+  const addSel = h('select', { 'aria-label': 'Add a tag', onchange: e => {
+    const id = e.target.value;
+    if (!id) return;
+    if (id === '__custom') { const b = $('#custom-tag'); b.hidden = false; b.focus(); e.target.value = ''; return; }
+    const d = TAGS[id], t = { id };
+    if (d[2] != null) t.val = d[2];
+    f.tags.push(t);
+    commit(true);
+  } },
+    h('option', { value: '' }, 'Add a tag…'),
+    groups.map(g => h('optgroup', { label: g }, Object.entries(TAGS).filter(([id, d]) => d[1] === g && !hasTag(f, id)).map(([id, d]) => h('option', { value: id }, d[0].replace('{v}', d[2] ?? ''))))),
+    h('option', { value: '__custom' }, 'Other tag ID…'));
+  const custom = h('input', { id: 'custom-tag', type: 'text', hidden: true, placeholder: 'tg_example, then press Enter', 'aria-label': 'Custom tag ID', class: 'mono', onkeydown: e => {
+    if (e.key === 'Enter' && e.target.value.trim()) { f.tags.push({ id: e.target.value.trim() }); commit(true); }
+  } });
+  return h('fieldset', null, h('legend', null, 'Tags'), rows, addSel, custom,
+    h('span', { class: 'hint' }, 'Action tags, recharge and limited uses all go here. COMP/CON sorts them alphabetically on the card.'));
+}
+function damageEditor(f) {
+  f.damage = f.damage || [];
+  return h('fieldset', null, h('legend', null, 'Damage by tier'),
+    f.damage.map((d, i) => {
+      d.damage = d.damage || [0, 0, 0];
+      return h('div', { class: 'line dmg' },
+        h('select', { 'aria-label': 'Damage type', value: d.type, onchange: e => { d.type = e.target.value; commit(); } }, [...new Set([...DAMAGE_TYPES, d.type])].map(t => h('option', null, t))),
+        [0, 1, 2].map(n => numIn(() => d.damage[n], v => { d.damage[n] = v ?? 0; }, { 'aria-label': `Damage, tier ${n + 1}`, placeholder: 'T' + (n + 1) })),
+        h('button', { class: 'btn small danger', type: 'button', 'aria-label': 'Remove damage', onclick: () => { f.damage.splice(i, 1); commit(true); } }, '×'));
+    }),
+    h('button', { class: 'btn small', type: 'button', onclick: () => { f.damage.push({ type: 'Kinetic', damage: [4, 6, 8] }); commit(true); } }, '+ Damage'));
+}
+function rangeEditor(f) {
+  f.range = f.range || [];
+  return h('fieldset', null, h('legend', null, 'Range'),
+    f.range.map((r, i) => h('div', { class: 'line rng' },
+      h('select', { 'aria-label': 'Range type', value: r.type, onchange: e => { r.type = e.target.value; commit(); } }, [...new Set([...RANGE_TYPES, r.type])].map(t => h('option', null, t))),
+      numIn(() => r.val, v => { r.val = v ?? 0; }, { 'aria-label': 'Range value' }),
+      h('button', { class: 'btn small danger', type: 'button', 'aria-label': 'Remove range', onclick: () => { f.range.splice(i, 1); commit(true); } }, '×'))),
+    h('button', { class: 'btn small', type: 'button', onclick: () => { f.range.push({ type: 'Range', val: 5 }); commit(true); } }, '+ Range'));
+}
+const KNOWN = new Set(['id', 'name', 'origin', 'locked', 'type', 'effect', 'tags', 'trigger', 'weapon_type', 'attack_bonus', 'accuracy', 'damage', 'range', 'on_hit', 'tech_type']);
+function advancedEditor(f) {
+  const extras = {};
+  Object.keys(f).forEach(k => { if (!KNOWN.has(k)) extras[k] = f[k]; });
+  const msg = h('span', { class: 'hint', role: 'status' }, 'Extra JSON fields, such as a stat "bonus" or "immunity". They are written to the feature as-is.');
+  const ta = h('textarea', { class: 'mono', rows: 4, value: Object.keys(extras).length ? JSON.stringify(extras, null, 2) : '', 'aria-label': 'Extra JSON fields', oninput: e => {
+    try {
+      const v = e.target.value.trim() ? JSON.parse(e.target.value) : {};
+      if (typeof v !== 'object' || Array.isArray(v) || v === null) throw new Error('Use a JSON object.');
+      Object.keys(f).forEach(k => { if (!KNOWN.has(k)) delete f[k]; });
+      Object.entries(v).forEach(([k, x]) => { if (!KNOWN.has(k)) f[k] = x; });
+      msg.textContent = 'Saved.'; msg.style.color = '';
+      commit();
+    } catch (err) { msg.textContent = 'Not valid JSON yet: ' + err.message; msg.style.color = 'var(--err)'; }
+  } });
+  return h('details', { open: Object.keys(extras).length > 0 || null }, h('summary', { style: 'cursor:pointer;margin-bottom:8px' }, 'Advanced'), ta, msg);
+}
+function idField(kind, x, onRename) {
+  return field('ID', h('input', { type: 'text', class: 'mono', value: x.id ?? '', oninput: e => { onRename(e.target.value.trim()); commit(); }, id: 'f-id' }), 'Must be unique. It follows the name until you edit it.');
+}
+function nameField(kind, x, setName, setId) {
+  return field('Name', h('input', { type: 'text', value: x.name ?? '', oninput: e => {
+    const follows = x.id === autoId(kind, x.name) || new RegExp('^' + autoId(kind, x.name) + '_\\d+$').test(x.id || '');
+    setName(e.target.value);
+    if (follows && e.target.value.trim()) {
+      const next = uniqueOther(autoId(kind, e.target.value), x);
+      setId(next);
+      const el = $('#f-id'); if (el) el.value = next;
+    }
+    commit();
+  } }));
+}
+function uniqueOther(base, self) {
+  const used = new Set([...S.features, ...S.templates, ...S.classes].filter(o => o !== self).map(o => o.id));
+  let id = base, n = 2;
+  while (used.has(id)) id = base + '_' + n++;
+  return id;
+}
+
+/* ---------- forms ---------- */
+function formPack() {
+  const m = S.manifest;
+  return [
+    h('div', { class: 'form-h' }, h('h2', null, 'Pack details')),
+    field('Pack name', textIn(() => m.name, v => { m.name = v; })),
+    field('Author', textIn(() => m.author, v => { m.author = v; })),
+    field('Description', areaIn(() => m.description, v => { m.description = v; }, { rows: 3 })),
+    h('div', { class: 'two' },
+      field('Version', textIn(() => m.version, v => { m.version = v; }), 'Raise this each time you re-share the pack.'),
+      field('Item prefix (optional)', textIn(() => m.item_prefix, v => { if (v) m.item_prefix = v; else delete m.item_prefix; }))),
+    field('Website (optional)', textIn(() => m.website, v => { if (v) m.website = v; else delete m.website; })),
+    field('Cover image URL (optional)', textIn(() => m.image_url, v => { if (v) m.image_url = v; else delete m.image_url; })),
+    Object.keys(S.other).length ? h('p', { class: 'hint' }, `Also keeping ${Object.keys(S.other).length} other file(s) from the pack you opened: ${Object.keys(S.other).join(', ')}.`) : null,
+    h('fieldset', null, h('legend', null, 'How to use your download'),
+      h('p', null, 'In COMP/CON, import the .lcp in the content manager, then add your template to an NPC and pick your feature from its optional features.'))
+  ];
+}
+function formFeature(f) {
+  const hs = holders();
+  const o = f.origin || {};
+  const hd = findHolder(o);
+  const originVal = hd ? `${hd[0]}|${hd[1].name}` : (o.type ? '__other' : '__none');
+  const originSel = h('select', { id: 'f-origin', value: originVal, onchange: e => {
+    const v = e.target.value;
+    snapshot();
+    if (v === '__new') { newTemplateFor(f); return; }
+    if (v === '__none') setOrigin(f, '', '', false);
+    else if (v === '__other') setOrigin(f, 'Class', o.name || '', false);
+    else { const [t, ...n] = v.split('|'); setOrigin(f, t, n.join('|'), o.base); }
+    commit(true);
+  } },
+    hs.length ? h('optgroup', { label: 'In this pack' }, hs.map(([t, x]) => h('option', { value: `${t}|${x.name}` }, `${x.name} (${t})`))) : null,
+    h('option', { value: '__new' }, '+ New template…'),
+    h('option', { value: '__other' }, 'A class or template from another pack'),
+    h('option', { value: '__none' }, 'Nothing yet'));
+  return [
+    h('div', { class: 'form-h' }, h('h2', null, f.name || 'Unnamed feature'), actions()),
+    nameField('feature', f, v => { f.name = v; }, id => renameFeature(f, id)),
+    field('Type', h('select', { value: f.type, onchange: e => { snapshot(); f.tags = f.tags || []; applyType(f, e.target.value); commit(true); } }, [...new Set([...TYPES, f.type])].map(t => h('option', null, t))), 'Reaction adds a trigger and purple box. Tech adds attack bonuses. A System with the Protocol tag gets a green header.'),
+    f.type === 'Reaction' ? field('Trigger', richIn(f, 'trigger', 2, 'The Captain takes damage from…')) : null,
+    field('Effect', richIn(f, 'effect', 5, 'What it does. Write {1/2/3} for values that change by tier.'), 'Line breaks are kept. {1/2/3} shows in red and changes by tier.'),
+    f.type === 'Weapon' ? [
+      field('Weapon type', h('input', { type: 'text', list: 'wt', value: f.weapon_type ?? '', oninput: e => { f.weapon_type = e.target.value; commit(); } }), 'Size then kind, like Main Melee.'),
+      h('datalist', { id: 'wt' }, WEAPON_TYPES.map(w => h('option', { value: w }))),
+      rangeEditor(f), damageEditor(f),
+      tierRow('Attack bonus', f, 'attack_bonus'),
+      tierRow('Accuracy (optional)', f, 'accuracy', true),
+      field('On hit (optional)', richIn(f, 'on_hit', 2))
+    ] : null,
+    f.type === 'Tech' ? [
+      field('Tech type', h('select', { value: f.tech_type ?? 'Quick', onchange: e => {
+        f.tech_type = e.target.value;
+        f.tags = (f.tags || []).filter(t => t.id !== 'tg_quick_tech' && t.id !== 'tg_full_tech');
+        f.tags.push({ id: f.tech_type === 'Full' ? 'tg_full_tech' : 'tg_quick_tech' });
+        commit(true);
+      } }, h('option', null, 'Quick'), h('option', null, 'Full'))),
+      tierRow('Attack bonus (optional)', f, 'attack_bonus', true),
+      tierRow('Accuracy (optional)', f, 'accuracy', true)
+    ] : null,
+    tagsEditor(f),
+    h('fieldset', null, h('legend', null, 'Where it can be added'),
+      field('Belongs to', originSel, 'A feature needs a class or template in this pack so you can add it to an NPC.'),
+      originVal === '__other' ? h('div', { class: 'two' },
+        field('Class or template', h('select', { value: o.type || 'Class', onchange: e => { f.origin.type = e.target.value; commit(); } }, h('option', null, 'Class'), h('option', null, 'Template'))),
+        field('Its exact name', textIn(() => o.name, v => { f.origin.name = v; }))) : null,
+      originVal !== '__none' ? field('Added as', h('select', { value: o.base ? 'base' : 'optional', onchange: e => {
+        setOrigin(f, f.origin.type, f.origin.name, e.target.value === 'base'); commit(true);
+      } }, h('option', { value: 'optional' }, 'Optional: the GM picks it'), h('option', { value: 'base' }, 'Base: every NPC with it gets this'))) : null),
+    idField('feature', f, id => renameFeature(f, id)),
+    advancedEditor(f)
+  ];
+}
+function newTemplateFor(f) {
+  const name = uniqueHolderName('Custom Systems', S.templates);
+  S.templates.push({ id: uniqueId(autoId('template', name)), name, description: 'Holder template for custom NPC features.', base_features: [], optional_features: [], power: 50 });
+  setOrigin(f, 'Template', name, false);
+  commit(true);
+  toast(`Created the template ${name}.`, true);
+}
+function featureLists(type, x) {
+  const row = (id, listKey) => {
+    const f = S.features.find(y => y.id === id);
+    return h('div', { class: 'line feat' },
+      f ? h('button', { class: 'item', type: 'button', onclick: () => { sel = { kind: 'feature', i: S.features.indexOf(f) }; renderAll(); } }, h('span', { class: 'nm' }, f.name || id)) : h('div', { class: 't mono' }, id),
+      h('select', { 'aria-label': `Base or optional for ${id}`, value: listKey === 'base_features' ? 'base' : 'optional', onchange: e => {
+        const base = e.target.value === 'base';
+        if (f) setOrigin(f, type, x.name, base);
+        else {
+          x.base_features = x.base_features.filter(i => i !== id); x.optional_features = x.optional_features.filter(i => i !== id);
+          x[base ? 'base_features' : 'optional_features'].push(id);
+        }
+        commit(true);
+      } }, h('option', { value: 'base' }, 'Base'), h('option', { value: 'optional' }, 'Optional')),
+      h('button', { class: 'btn small danger', type: 'button', 'aria-label': `Remove ${id} from ${x.name}`, onclick: () => {
+        snapshot();
+        if (f) setOrigin(f, '', '', false);
+        else { x.base_features = x.base_features.filter(i => i !== id); x.optional_features = x.optional_features.filter(i => i !== id); }
+        commit(true);
+      } }, '×'));
+  };
+  x.base_features = x.base_features || []; x.optional_features = x.optional_features || [];
+  const inHere = new Set([...x.base_features, ...x.optional_features]);
+  const others = S.features.filter(f => !inHere.has(f.id));
+  return h('fieldset', null, h('legend', null, 'Features'),
+    x.base_features.map(id => row(id, 'base_features')),
+    x.optional_features.map(id => row(id, 'optional_features')),
+    !inHere.size ? h('p', { class: 'hint' }, 'Nothing here yet.') : null,
+    h('div', { class: 'row', style: 'margin-top:6px' },
+      h('button', { class: 'btn small', type: 'button', onclick: () => newFeature([type, x]) }, '+ New feature here'),
+      others.length ? h('select', { 'aria-label': 'Move an existing feature here', style: 'flex:1;min-width:140px', onchange: e => {
+        const f = S.features.find(y => y.id === e.target.value);
+        if (f) { snapshot(); setOrigin(f, type, x.name, false); commit(true); }
+      } }, h('option', { value: '' }, 'Move a feature here…'), others.map(f => h('option', { value: f.id }, f.name || f.id))) : null));
+}
+function formTemplate(t) {
+  return [
+    h('div', { class: 'form-h' }, h('h2', null, t.name || 'Unnamed template'), actions()),
+    nameField('template', t, v => renameHolder('Template', t, v), id => { t.id = id; }),
+    field('Description', areaIn(() => t.description, v => { t.description = v; }, { rows: 4 })),
+    field('Power', numIn(() => t.power, v => { t.power = v ?? 0; }), 'Published templates mostly use 50, some 20.'),
+    featureLists('Template', t),
+    idField('template', t, id => { t.id = id; })
+  ];
+}
+function formClass(c) {
+  c.info = c.info || {}; c.stats = c.stats || {};
+  const sizeIn = i => textIn(() => (c.stats.size && c.stats.size[i] || []).join(', '), v => {
+    c.stats.size = c.stats.size || [[], [], []];
+    c.stats.size[i] = v.split(',').map(x => parseFloat(x)).filter(Number.isFinite);
+  }, { 'aria-label': `Size, tier ${i + 1}`, placeholder: 'T' + (i + 1) });
+  return [
+    h('div', { class: 'form-h' }, h('h2', null, c.name || 'Unnamed class'), actions()),
+    nameField('class', c, v => renameHolder('Class', c, v), id => { c.id = id; }),
+    h('div', { class: 'two' },
+      field('Role', h('select', { value: c.role, onchange: e => { c.role = e.target.value; commit(); } }, ROLES.map(r => h('option', { value: r }, r[0].toUpperCase() + r.slice(1))))),
+      field('Power', numIn(() => c.power, v => { c.power = v ?? 0; }), 'Published classes use 100.')),
+    field('Description', areaIn(() => c.info.flavor, v => { c.info.flavor = v; }, { rows: 3 })),
+    field('Tactics', areaIn(() => c.info.tactics, v => { c.info.tactics = v; }, { rows: 3 })),
+    h('fieldset', null, h('legend', null, 'Stats by tier (T1, T2, T3)'),
+      h('div', { class: 'stats-grid' },
+        STATS.map(([k, l]) => tierRow(l, c.stats, k, OPTIONAL_STATS.has(k))),
+        h('div', { class: 'field' }, h('span', { class: 'lab' }, 'Size'), h('div', { class: 'tiers' }, [0, 1, 2].map(sizeIn)), h('span', { class: 'hint' }, 'Use commas for a choice: 0.5, 1')))),
+    featureLists('Class', c),
+    idField('class', c, id => { c.id = id; })
+  ];
+}
+function actions() {
+  return h('div', { class: 'row' },
+    h('button', { class: 'btn small', type: 'button', onclick: duplicate }, 'Duplicate'),
+    h('button', { class: 'btn small danger', type: 'button', onclick: removeCurrent }, 'Delete'));
+}
+
+/* ---------- render ---------- */
+function renderSide() {
+  const item = (kind, i, label, ty) => h('button', { class: 'item' + (sel.kind === kind && sel.i === i ? ' on' : ''), type: 'button', 'aria-current': sel.kind === kind && sel.i === i ? 'true' : null, onclick: () => { sel = { kind, i }; renderAll(); } },
+    h('span', { class: 'nm' }, label || 'Unnamed'), ty ? h('span', { class: 'ty' }, ty) : null);
+  const section = (title, add, kids) => [h('div', { class: 'side-h' }, title, add), kids.length ? kids : h('p', { class: 'empty' }, 'None yet')];
+  $('#side').replaceChildren(...[
+    item('pack', 0, S.manifest.name || 'Pack details', 'Pack'),
+    section('Features', h('button', { class: 'btn small', type: 'button', onclick: () => newFeature(), 'aria-label': 'New feature' }, '+'), S.features.map((f, i) => item('feature', i, f.name, f.type))),
+    section('Templates', h('button', { class: 'btn small', type: 'button', onclick: newTemplate, 'aria-label': 'New template' }, '+'), S.templates.map((t, i) => item('template', i, t.name))),
+    section('Classes', h('button', { class: 'btn small', type: 'button', onclick: newClass, 'aria-label': 'New class' }, '+'), S.classes.map((c, i) => item('class', i, c.name, c.role)))
+  ].flat(Infinity));
+}
+function renderForm() {
+  const it = cur();
+  if (!it) sel = { kind: 'pack', i: 0 };
+  const b = sel.kind === 'pack' ? formPack() : sel.kind === 'feature' ? formFeature(cur()) : sel.kind === 'template' ? formTemplate(cur()) : formClass(cur());
+  $('#form').replaceChildren(...b.flat(Infinity).filter(Boolean));
+}
+function jsonFor() {
+  if (sel.kind === 'pack') return { file: 'lcp_manifest.json', data: S.manifest };
+  return { file: { feature: 'npc_features.json', template: 'npc_templates.json', class: 'npc_classes.json' }[sel.kind], data: cur() };
+}
+function renderRight() {
+  const issues = validate();
+  const errs = issues.filter(i => i.lvl === 'err').length, warns = issues.length - errs;
+  const tabBtn = (id, label) => h('button', { type: 'button', role: 'tab', 'aria-selected': rightTab === id ? 'true' : 'false', onclick: () => { rightTab = id; renderRight(); } }, label);
+  const head = h('div', { class: 'pv-h' },
+    h('div', { class: 'tabs', role: 'tablist' }, tabBtn('preview', 'Preview'), tabBtn('checks', `Checks (${issues.length})`), tabBtn('json', 'JSON')),
+    rightTab === 'preview' ? h('div', { class: 'seg', role: 'group', 'aria-label': 'Tier shown in preview' },
+      [[0, 'All tiers'], [1, 'T1'], [2, 'T2'], [3, 'T3']].map(([v, l]) => h('button', { type: 'button', 'aria-pressed': tier === v ? 'true' : 'false', onclick: () => { tier = v; renderRight(); } }, l))) : null);
+  const status = h('div', { class: 'status' + (errs ? ' bad' : warns ? ' meh' : ''), role: 'status' },
+    errs ? `${errs} problem${errs > 1 ? 's' : ''} to fix before importing${warns ? `, ${warns} to review` : ''}.` : warns ? `Ready to download, with ${warns} thing${warns > 1 ? 's' : ''} to review.` : 'Ready to download.');
+  let body;
+  if (rightTab === 'checks') {
+    body = issues.length ? h('ul', { class: 'issues' }, issues.map(i => h('li', { class: i.lvl }, h('button', { type: 'button', onclick: () => { sel = i.sel; rightTab = 'preview'; renderAll(); } }, (i.lvl === 'err' ? 'Fix: ' : 'Check: ') + i.msg)))) : h('p', { class: 'empty' }, 'Nothing to report.');
+  } else if (rightTab === 'json') {
+    const j = jsonFor();
+    body = [h('p', { class: 'hint', style: 'margin-bottom:6px' }, `This entry, as written to ${j.file}:`), h('pre', { class: 'json mono' }, JSON.stringify(j.data, null, 2))];
+  } else {
+    const it = cur();
+    body = h('div', { class: 'cc' },
+      sel.kind === 'feature' ? [card(it, 'picker'), it.origin && it.origin.base ? null : h('p', { class: 'hint' }, 'As shown when picking optional features for an NPC.')]
+      : sel.kind === 'template' ? templatePage(it)
+      : sel.kind === 'class' ? classPage(it)
+      : S.features.length ? [h('div', { class: 'sec' }, 'All features'), S.features.map(f => card(f))]
+      : h('p', { class: 'empty' }, 'Add a feature with the + button, or use Load example to see one.'));
+  }
+  $('#right').replaceChildren(...[head, status, body].flat(Infinity).filter(Boolean));
+}
+function renderAll() { renderSide(); renderForm(); renderRight(); }
+
+/* ---------- top bar ---------- */
+$('#b-new').addEventListener('click', () => { snapshot(); S = blank(); sel = { kind: 'pack', i: 0 }; commit(true); toast('Started a new pack.', true); });
+$('#b-example').addEventListener('click', () => { snapshot(); S = exampleData(); sel = { kind: 'feature', i: 0 }; commit(true); toast("Loaded Captain's Deflect.", true); });
+$('#b-open').addEventListener('click', () => $('#file').click());
+$('#b-dl').addEventListener('click', download);
+$('#file').addEventListener('change', async e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+  try {
+    const next = await importBytes(await file.arrayBuffer());
+    snapshot(); S = next; sel = { kind: 'pack', i: 0 }; commit(true);
+    toast(`Opened ${S.manifest.name || file.name}: ${S.features.length} features.`, true);
+  } catch (err) { toast("Couldn't open that file. " + err.message); }
+});
+
+/* Small surface for automated checks. */
+window.lcpWorkbench = { get state() { return S; }, set state(v) { S = v; sel = { kind: 'pack', i: 0 }; renderAll(); }, importBytes, packBytes, validate, select(kind, i) { sel = { kind, i }; renderAll(); }, setTier(t) { tier = t; renderRight(); } };
+
+load();
+renderAll();
+</script>
+</body>
+</html>
